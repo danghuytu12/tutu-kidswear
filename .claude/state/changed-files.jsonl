@@ -38,3 +38,15 @@
 {"file":"src/app/page.tsx","action":"Write","timestamp":"2026-07-02T11:52:42Z","important":false}
 {"file":"src/components/category/CategoryLayout.tsx","action":"Write","timestamp":"2026-07-02T11:52:53Z","important":false}
 {"file":"src/app/products/[slug]/page.tsx","action":"Write","timestamp":"2026-07-02T11:53:01Z","important":false}
+{"file":"package.json","action":"Write","timestamp":"2026-07-02T12:32:46Z","important":false}
+{"file":"turbo.json","action":"Write","timestamp":"2026-07-02T12:32:54Z","important":false}
+{"file":"tsconfig.base.json","action":"Write","timestamp":"2026-07-02T12:33:01Z","important":false}
+{"file":".gitignore","action":"Edit","timestamp":"2026-07-02T12:33:19Z","important":false}
+{"file":"packages/ui/package.json","action":"Write","timestamp":"2026-07-02T12:33:32Z","important":false}
+{"file":"packages/ui/tsconfig.json","action":"Write","timestamp":"2026-07-02T12:33:48Z","important":false}
+{"file":"packages/ui/src/globals.css","action":"Edit","timestamp":"2026-07-02T12:41:23Z","important":false}
+{"file":"apps/user/src/app/globals.css","action":"Write","timestamp":"2026-07-02T12:41:33Z","important":false}
+{"file":"apps/admin/src/app/globals.css","action":"Write","timestamp":"2026-07-02T12:41:40Z","important":false}
+{"file":"apps/user/package.json","action":"Edit","timestamp":"2026-07-02T12:42:17Z","important":false}
+{"file":"apps/admin/package.json","action":"Edit","timestamp":"2026-07-02T12:42:25Z","important":false}
+{"file":"AGENTS.md","action":"Edit","timestamp":"2026-07-02T12:44:26Z","important":true}

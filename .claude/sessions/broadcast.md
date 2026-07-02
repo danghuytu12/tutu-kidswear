@@ -22,3 +22,9 @@
 
 ## 2026-07-02T11:49:32Z [fdb7677b-85e]
 📁 `/home/huytu20/Documents/ai-website-cloner-template/docs/research/components/category-page.spec.md` が変更されました: パターン '*.md' にマッチ
+
+## 2026-07-02T12:44:26Z [fdb7677b-85e]
+📁 `/home/huytu20/Documents/ai-website-cloner-template/AGENTS.md` が変更されました: パターン '*.md' にマッチ
+
+## 2026-07-02T12:44:39Z [fdb7677b-85e]
+📁 `/home/huytu20/Documents/ai-website-cloner-template/AGENTS.md` が変更されました: パターン '*.md' にマッチ

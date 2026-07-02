@@ -1,0 +1,9 @@
+/* Admin CSS entry — Tailwind + plugins resolve from this app's node_modules,
+   then the shared design system (tokens, fonts, utilities) from @repo/ui. */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@source "../../../../packages/ui/src";
+
+@import "@repo/ui/globals.css";

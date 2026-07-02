@@ -19,12 +19,18 @@ A reusable template for reverse-engineering any website into a clean, modern Nex
 - **Styling:** Tailwind CSS v4 with oklch design tokens
 - **Deployment:** Vercel
 
-## Commands
-- `npm run dev` — Start dev server
-- `npm run build` — Production build
-- `npm run lint` — ESLint check
-- `npm run typecheck` — TypeScript check
-- `npm run check` — Run lint + typecheck + build
+## Monorepo (Turborepo + npm workspaces)
+Two Next.js apps share a UI package:
+- `apps/user` — the public storefront (cocandy clone), dev on **:3000**
+- `apps/admin` — the admin dashboard, dev on **:3001**
+- `packages/ui` (`@repo/ui`) — shared components, icons, design tokens (`globals.css`), `lib` (utils, products, navigation, types)
+
+## Commands (run from repo root; Turbo fans out to workspaces)
+- `npm run dev` — start both apps · `npm run dev:user` / `npm run dev:admin` — one app
+- `npm run build` — build all · `npm run typecheck` · `npm run lint`
+- `npm run check` — lint + typecheck + build across the monorepo
+
+Imports: shared code via `@repo/ui/...` (e.g. `@repo/ui/components/SiteHeader`, `@repo/ui/lib/products`); app-local code via `@/...`. Each app `transpilePackages: ["@repo/ui"]` and its `globals.css` imports `@repo/ui/globals.css` for the shared tokens.
 
 ## Code Style
 - TypeScript strict mode, no `any`
@@ -41,19 +47,22 @@ A reusable template for reverse-engineering any website into a clean, modern Nex
 
 ## Project Structure
 ```
-src/
-  app/              # Next.js routes
-  components/       # React components
-    ui/             # shadcn/ui primitives
-    icons.tsx       # Extracted SVG icons as React components
-  lib/
-    utils.ts        # cn() utility (shadcn)
-  types/            # TypeScript interfaces
-  hooks/            # Custom React hooks
-public/
-  images/           # Downloaded images from target site
-  videos/           # Downloaded videos from target site
-  seo/              # Favicons, OG images, webmanifest
+apps/
+  user/             # Public storefront (Next.js app)
+    src/app/        # Routes: /, /products/[slug], /checkout, /categories/[slug]
+    src/components/ # App-local sections (home/, pdp/, checkout/, category/)
+    public/         # images/, videos/, seo/ (downloaded assets)
+  admin/            # Admin dashboard (Next.js app)
+    src/app/        # Routes: /, /products, /orders, /customers, /settings
+    src/components/ # AdminSidebar, AdminTopbar, PagePlaceholder
+    public/         # shared brand assets (logo, favicon)
+packages/
+  ui/               # @repo/ui — shared workspace package
+    src/components/ # Shared UI: SiteHeader/Footer, ProductCard/Carousel/Grid, ui/, icons.tsx
+    src/lib/        # utils.ts (cn), products.ts, navigation.ts, types.ts
+    src/globals.css # Shared design tokens, theme, utilities
+turbo.json          # Turborepo pipeline
+tsconfig.base.json  # Shared TS config (apps/packages extend this)
 docs/
   research/         # Inspection output (design tokens, components, layout)
   design-references/ # Screenshots and visual references

@@ -9,6 +9,9 @@ out/
 build/
 dist/
 
+# Turborepo
+.turbo/
+
 # Environment
 .env
 .env.local
