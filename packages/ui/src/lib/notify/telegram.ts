@@ -55,6 +55,9 @@ export async function sendOrderToTelegram(order: OrderDoc): Promise<void> {
       console.error("[telegram] sendMessage failed", res.status, await res.text());
     }
   } catch (err) {
-    console.error("[telegram] request error", err);
+    // Log only the message text — NOT the raw error object, whose message/cause
+    // can embed the request URL (which contains the bot token).
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[telegram] request error:", msg.replace(/bot\d+:[\w-]+/g, "bot<redacted>"));
   }
 }

@@ -41,7 +41,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw) as CartItem[]);
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        // Validate shape: a bad/legacy value could otherwise inject NaN prices.
+        if (Array.isArray(parsed)) {
+          setItems(
+            parsed.filter(
+              (i): i is CartItem =>
+                !!i &&
+                typeof i === "object" &&
+                typeof (i as CartItem).href === "string" &&
+                typeof (i as CartItem).name === "string" &&
+                typeof (i as CartItem).price === "number" &&
+                Number.isFinite((i as CartItem).price) &&
+                typeof (i as CartItem).qty === "number" &&
+                (i as CartItem).qty > 0,
+            ),
+          );
+        }
+      }
     } catch {
       // ignore corrupt storage
     }
