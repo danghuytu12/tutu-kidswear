@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Baloo_2 } from "next/font/google";
+import { CartProvider } from "@repo/ui/components/cart/CartContext";
 import "./globals.css";
 
 // Body font — excellent Vietnamese diacritic support, geometric like the target's "font moi"
@@ -43,7 +44,7 @@ export default function RootLayout({
       className={`${beVietnamPro.variable} ${baloo2.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-black">
-        {children}
+        <CartProvider>{children}</CartProvider>
       </body>
     </html>
   );
