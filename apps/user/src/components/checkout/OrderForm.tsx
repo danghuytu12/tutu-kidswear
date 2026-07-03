@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DeliveryIcon, ChevronDownIcon } from "@repo/ui/components/icons";
+import { DeliveryIcon } from "@repo/ui/components/icons";
 import { useCart } from "@repo/ui/components/cart/CartContext";
 import { useToast } from "@repo/ui/components/ui/toast";
 import type { OrderInput } from "@repo/ui/lib/db/types";
@@ -12,37 +12,8 @@ const labelClass = "text-[14px] text-black mb-1 block";
 
 type Payment = "cod" | "qr";
 
-function SelectField({
-  placeholder,
-  options,
-  value,
-  onChange,
-}: {
-  placeholder: string;
-  options: string[];
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${inputClass} appearance-none pr-10`}
-      >
-        <option value="" disabled>
-          {placeholder}
-        </option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-      <ChevronDownIcon className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/40" />
-    </div>
-  );
-}
+// Vietnamese mobile number: 10 digits starting with 03/05/07/08/09.
+const PHONE_RE = /^0(3[2-9]|5[25689]|7[06-9]|8[1-9]|9\d)\d{7}$/;
 
 export function OrderForm() {
   const { items, clear } = useCart();
@@ -50,17 +21,17 @@ export function OrderForm() {
   const [payment, setPayment] = useState<Payment>("cod");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
-  const [province, setProvince] = useState("");
-  const [district, setDistrict] = useState("");
-  const [ward, setWard] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function placeOrder() {
     if (!name.trim() || !phone.trim() || !address.trim()) {
       toast.error("Thiếu thông tin", "Vui lòng nhập Họ tên, Số điện thoại và Địa chỉ.");
+      return;
+    }
+    if (!PHONE_RE.test(phone.trim().replace(/[\s.]/g, ""))) {
+      toast.error("Số điện thoại không hợp lệ", "Vui lòng nhập số di động Việt Nam gồm 10 chữ số, bắt đầu bằng 0.");
       return;
     }
     if (items.length === 0) {
@@ -77,11 +48,10 @@ export function OrderForm() {
       })),
       customerName: name.trim(),
       customerPhone: phone.trim(),
-      customerEmail: email.trim() || undefined,
       address: address.trim(),
-      province,
-      district,
-      ward,
+      province: "",
+      district: "",
+      ward: "",
       note: note.trim(),
       paymentMethod: payment,
     };
@@ -99,8 +69,7 @@ export function OrderForm() {
       const data = (await res.json()) as { order: { _id: string } };
       toast.success("Đặt hàng thành công!", `Mã đơn: ${data.order._id}`);
       clear();
-      setName(""); setPhone(""); setEmail(""); setAddress("");
-      setProvince(""); setDistrict(""); setWard(""); setNote("");
+      setName(""); setPhone(""); setAddress(""); setNote("");
     } catch (err) {
       toast.error("Không thể tạo đơn hàng", err instanceof Error ? err.message : undefined);
     } finally {
@@ -115,34 +84,25 @@ export function OrderForm() {
       </h2>
 
       <div className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelClass}>Họ và tên *</label>
-            <input
-              className={inputClass}
-              placeholder="Họ và tên"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Số điện thoại *</label>
-            <input
-              className={inputClass}
-              placeholder="Số điện thoại"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
+        <div>
+          <label className={labelClass}>Họ và tên *</label>
+          <input
+            className={inputClass}
+            placeholder="Họ và tên"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
         </div>
 
         <div>
-          <label className={labelClass}>Email</label>
+          <label className={labelClass}>Số điện thoại *</label>
           <input
             className={inputClass}
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="tel"
+            inputMode="numeric"
+            placeholder="Số điện thoại"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
           />
         </div>
 
@@ -150,30 +110,9 @@ export function OrderForm() {
           <label className={labelClass}>Địa chỉ *</label>
           <input
             className={inputClass}
-            placeholder="Địa chỉ ( VD: 532 Nguyễn Văn Cừ )"
+            placeholder="Địa chỉ ( VD: 532 Nguyễn Văn Cừ, Phường 1, Quận 5, TP.HCM )"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          <SelectField
-            placeholder="Tỉnh/Thành phố"
-            options={["Hà Nội", "TP. Hồ Chí Minh"]}
-            value={province}
-            onChange={setProvince}
-          />
-          <SelectField
-            placeholder="Quận/Huyện"
-            options={["Quận 1", "Quận 2"]}
-            value={district}
-            onChange={setDistrict}
-          />
-          <SelectField
-            placeholder="Phường/Xã"
-            options={["Phường 1", "Phường 2"]}
-            value={ward}
-            onChange={setWard}
           />
         </div>
 

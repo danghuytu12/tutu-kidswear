@@ -271,7 +271,7 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
           </div>
           <div className="flex items-center gap-2 text-[14px]">
             <PhoneIcon className="h-5 w-5 text-[#b08560]" />
-            <span>Hotline 0903241926 hỗ trợ từ 8h30 - 23h mỗi ngày</span>
+            <span>Hotline 0834494182 hỗ trợ từ 8h30 - 23h mỗi ngày</span>
           </div>
           <div className="flex items-center gap-2 text-[14px]">
             <DeliveryIcon className="h-5 w-5 text-[#b08560]" />

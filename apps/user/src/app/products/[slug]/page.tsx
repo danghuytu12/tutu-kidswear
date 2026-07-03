@@ -68,8 +68,8 @@ export default async function ProductPage({ params }: Params) {
       <ProductDetail data={data} />
       <ProductDescription html={data?.description} />
       <ProductCarousel title="GỢI Ý SẢN PHẨM" products={similar} moreLabel="" />
-      <ProductReviews />
-      <SimilarProducts />
+      {/* <ProductReviews /> */}
+      {/* <SimilarProducts /> */}
       <SiteFooter />
       <FloatingWidgets />
     </>

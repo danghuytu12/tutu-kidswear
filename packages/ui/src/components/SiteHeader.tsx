@@ -5,7 +5,6 @@ import { useState } from "react";
 import { megaMenus, simpleNavLinks } from "@repo/ui/lib/navigation";
 import type { MegaMenu } from "@repo/ui/lib/types";
 import {
-  SearchIcon,
   CartIcon,
   ChevronDownIcon,
   MenuIcon,
@@ -112,18 +111,6 @@ export function SiteHeader() {
 
         {/* Right actions */}
         <div className="flex items-center gap-3">
-          {/* Search pill (desktop) */}
-          <div className="hidden items-center gap-2 rounded-full bg-[#f2f2f2] px-4 py-2.5 lg:flex">
-            <SearchIcon className="h-4 w-4 text-black/50" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm sản phẩm..."
-              className="w-56 bg-transparent text-[14px] text-black outline-none placeholder:text-black/50"
-            />
-          </div>
-          <button type="button" aria-label="Tìm kiếm" className="lg:hidden">
-            <SearchIcon className="h-6 w-6 text-black/70" />
-          </button>
           {/* Cart */}
           <a href="/checkout" className="relative" aria-label="Giỏ hàng">
             <CartIcon className="h-7 w-7 text-[#b08560]" />

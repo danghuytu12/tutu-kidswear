@@ -69,9 +69,9 @@ export function SiteFooter() {
             <h4 className="font-display mb-3 text-[16px] font-bold text-black">
               {footerContact.businessName}
             </h4>
-            <p className="text-[13px] leading-relaxed text-[#777]">
+            {/* <p className="text-[13px] leading-relaxed text-[#777]">
               {footerContact.office}
-            </p>
+            </p> */}
             <div className="mt-3 flex items-center gap-2 text-[14px] text-black">
               <PhoneIcon className="h-4 w-4 text-[#b08560]" />
               <span>{footerContact.hotline}</span>
@@ -80,9 +80,9 @@ export function SiteFooter() {
               <MailIcon className="h-4 w-4 text-[#b08560]" />
               <span>{footerContact.email}</span>
             </div>
-            <p className="mt-3 text-[12px] leading-relaxed text-[#999]">
+            {/* <p className="mt-3 text-[12px] leading-relaxed text-[#999]">
               {footerContact.legal}
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

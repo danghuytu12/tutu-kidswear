@@ -173,11 +173,11 @@ export const footerContact = {
   blurbTitle: "Tutu Kidswear lắng nghe bạn!",
   blurb:
     "Chúng tôi luôn trân trọng và mong đợi nhận được mọi ý kiến đóng góp từ khách hàng để có thể nâng cấp trải nghiệm dịch vụ và sản phẩm tốt hơn nữa.",
-  businessName: "HỘ KINH DOANH PHẠM THỊ LAN ANH 1990",
+  businessName: "HỘ KINH DOANH",
   office:
     "Văn phòng Hà Nội: Vị trí 14, Biệt thự 8, Khu đô thị Xa La, Phường Phúc La, Quận Hà Đông, Thành Phố Hà Nội",
   legal:
     "Hộ kinh doanh Phạm Thị Lan Anh 1990. Mã số: 8743585593. Giấy chứng nhận đăng kí hộ kinh doanh được UBND Quận Hà Đông cấp lần đầu ngày 04/06/2024",
-  hotline: "0793738926 (8:30 - 23:00)",
-  email: "cocandybot@gmail.com",
+  hotline: "3213213 (8:30 - 23:00)",
+  email: "huytu@gmail.com",
 };
