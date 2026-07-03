@@ -1,12 +1,22 @@
-export function ProductDescription() {
+export function ProductDescription({ html }: { html?: string } = {}) {
+  // When the DB product has a rich-text description, render it; otherwise fall
+  // back to the static default copy below.
+  if (html) {
+    return (
+      <section
+        className="cocandy-container rich-text py-8"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  }
+
   return (
     <section className="cocandy-container space-y-3 py-8 text-[16px] leading-relaxed text-black">
-      <p className="font-bold">Thời Trang COCANDY</p>
+      <p className="font-bold">Thời Trang Tutu Kidswear</p>
       <p>Comfy, Sweet and Happy!</p>
-      <p>Tại sao bạn nên quyết định chọn đồ cho bé của COCANDY:</p>
+      <p>Tại sao bạn nên quyết định chọn đồ cho bé của Tutu Kidswear:</p>
       <p>
-        - Sản phẩm được thiết kế và sản xuất tại Việt Nam bởi công ty TNHH thời
-        trang COCANDY
+        - Sản phẩm được thiết kế và sản xuất tại Việt Nam bởi Tutu Kidswear
       </p>
       <p>
         - Chất liệu sản phẩm được chọn lọc kỹ càng đảm bảo an toàn cho làn da em
@@ -21,7 +31,7 @@ export function ProductDescription() {
         ngoại, đi học, đi chơi...
       </p>
       <p className="font-bold">❤️THÔNG TIN SẢN PHẨM</p>
-      <p>Thương hiệu: COCANDY</p>
+      <p>Thương hiệu: Tutu Kidswear</p>
       <p>Xuất xứ: Việt Nam</p>
       <p>Mã sản phẩm: E2051</p>
       <p>

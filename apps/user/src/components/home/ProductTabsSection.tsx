@@ -2,16 +2,25 @@
 
 import { useState } from "react";
 import { ProductCard } from "@repo/ui/components/ProductCard";
-import { newProducts, bestsellerProducts } from "@repo/ui/lib/products";
+import {
+  newProducts,
+  bestsellerProducts,
+} from "@repo/ui/lib/products";
+import type { Product } from "@repo/ui/lib/types";
 
-const TABS = [
-  { key: "new", label: "SẢN PHẨM MỚI", products: newProducts },
-  { key: "best", label: "SẢN PHẨM BÁN CHẠY", products: bestsellerProducts },
-] as const;
+type TabKey = "new" | "best";
 
-type TabKey = (typeof TABS)[number]["key"];
-
-export function ProductTabsSection() {
+export function ProductTabsSection({
+  newList = newProducts,
+  bestList = bestsellerProducts,
+}: {
+  newList?: Product[];
+  bestList?: Product[];
+}) {
+  const TABS = [
+    { key: "new" as const, label: "SẢN PHẨM MỚI", products: newList },
+    { key: "best" as const, label: "SẢN PHẨM BÁN CHẠY", products: bestList },
+  ];
   const [active, setActive] = useState<TabKey>("new");
   const activeTab = TABS.find((t) => t.key === active) ?? TABS[0];
 

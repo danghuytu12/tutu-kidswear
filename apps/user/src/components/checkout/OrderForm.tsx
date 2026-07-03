@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { DeliveryIcon, ChevronDownIcon } from "@repo/ui/components/icons";
+import { useCart } from "@repo/ui/components/cart/CartContext";
+import { useToast } from "@repo/ui/components/ui/toast";
+import type { OrderInput } from "@repo/ui/lib/db/types";
 
 const inputClass =
   "rounded-full border border-black/15 px-5 py-3 text-[15px] w-full outline-none focus:border-[#b08560] placeholder:text-black/40";
@@ -12,14 +15,19 @@ type Payment = "cod" | "qr";
 function SelectField({
   placeholder,
   options,
+  value,
+  onChange,
 }: {
   placeholder: string;
   options: string[];
+  value: string;
+  onChange: (v: string) => void;
 }) {
   return (
     <div className="relative">
       <select
-        defaultValue=""
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         className={`${inputClass} appearance-none pr-10`}
       >
         <option value="" disabled>
@@ -37,7 +45,68 @@ function SelectField({
 }
 
 export function OrderForm() {
+  const { items, clear } = useCart();
+  const toast = useToast();
   const [payment, setPayment] = useState<Payment>("cod");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [province, setProvince] = useState("");
+  const [district, setDistrict] = useState("");
+  const [ward, setWard] = useState("");
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function placeOrder() {
+    if (!name.trim() || !phone.trim() || !address.trim()) {
+      toast.error("Thiếu thông tin", "Vui lòng nhập Họ tên, Số điện thoại và Địa chỉ.");
+      return;
+    }
+    if (items.length === 0) {
+      toast.error("Giỏ hàng đang trống");
+      return;
+    }
+    const payload: OrderInput = {
+      items: items.map((i) => ({
+        name: i.name,
+        price: i.price,
+        qty: i.qty,
+        img: i.img,
+        href: i.href,
+      })),
+      customerName: name.trim(),
+      customerPhone: phone.trim(),
+      customerEmail: email.trim() || undefined,
+      address: address.trim(),
+      province,
+      district,
+      ward,
+      note: note.trim(),
+      paymentMethod: payment,
+    };
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? "Không thể tạo đơn hàng");
+      }
+      const data = (await res.json()) as { order: { _id: string } };
+      toast.success("Đặt hàng thành công!", `Mã đơn: ${data.order._id}`);
+      clear();
+      setName(""); setPhone(""); setEmail(""); setAddress("");
+      setProvince(""); setDistrict(""); setWard(""); setNote("");
+    } catch (err) {
+      toast.error("Không thể tạo đơn hàng", err instanceof Error ? err.message : undefined);
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div>
@@ -49,17 +118,32 @@ export function OrderForm() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className={labelClass}>Họ và tên *</label>
-            <input className={inputClass} placeholder="Họ và tên" />
+            <input
+              className={inputClass}
+              placeholder="Họ và tên"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
           <div>
             <label className={labelClass}>Số điện thoại *</label>
-            <input className={inputClass} placeholder="Số điện thoại" />
+            <input
+              className={inputClass}
+              placeholder="Số điện thoại"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
           </div>
         </div>
 
         <div>
           <label className={labelClass}>Email</label>
-          <input className={inputClass} placeholder="Email" />
+          <input
+            className={inputClass}
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
 
         <div>
@@ -67,6 +151,8 @@ export function OrderForm() {
           <input
             className={inputClass}
             placeholder="Địa chỉ ( VD: 532 Nguyễn Văn Cừ )"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
           />
         </div>
 
@@ -74,14 +160,20 @@ export function OrderForm() {
           <SelectField
             placeholder="Tỉnh/Thành phố"
             options={["Hà Nội", "TP. Hồ Chí Minh"]}
+            value={province}
+            onChange={setProvince}
           />
           <SelectField
             placeholder="Quận/Huyện"
             options={["Quận 1", "Quận 2"]}
+            value={district}
+            onChange={setDistrict}
           />
           <SelectField
             placeholder="Phường/Xã"
             options={["Phường 1", "Phường 2"]}
+            value={ward}
+            onChange={setWard}
           />
         </div>
 
@@ -89,6 +181,8 @@ export function OrderForm() {
           rows={3}
           placeholder="Ghi chú thêm ( Ví dụ: Giao hàng giờ hành chính)"
           className="w-full rounded-2xl border border-black/15 px-5 py-3 text-[15px] outline-none focus:border-[#b08560] placeholder:text-black/40"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
         />
       </div>
 
@@ -154,9 +248,11 @@ export function OrderForm() {
 
       <button
         type="button"
-        className="mt-5 w-full rounded-full bg-[#b08560] py-3.5 text-[16px] font-semibold text-white hover:bg-[#8a6647]"
+        onClick={placeOrder}
+        disabled={submitting}
+        className="mt-5 w-full cursor-pointer rounded-full bg-[#b08560] py-3.5 text-[16px] font-semibold text-white hover:bg-[#8a6647] disabled:opacity-60"
       >
-        Thanh Toán
+        {submitting ? "Đang xử lý..." : "Thanh Toán"}
       </button>
     </div>
   );

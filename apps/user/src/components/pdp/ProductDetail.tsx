@@ -1,6 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCart } from "@repo/ui/components/cart/CartContext";
+import { useToast } from "@repo/ui/components/ui/toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@repo/ui/components/ui/dialog";
+import { parsePriceVnd } from "@repo/ui/lib/cart";
 import { pdpProduct } from "@repo/ui/lib/products";
 import {
   ChevronLeftIcon,
@@ -13,11 +23,57 @@ import {
   DeliveryIcon,
 } from "@repo/ui/components/icons";
 
-export function ProductDetail() {
-  const { gallery, name, orig, sale, discPct, sizes } = pdpProduct;
+// Optional overrides from the DB product (by slug). Rich fields not stored in
+// the DB (reviews) still come from the static pdpProduct.
+export interface ProductDetailData {
+  name?: string;
+  orig?: string;
+  sale?: string;
+  discPct?: string;
+  gallery?: string[];
+  href?: string;
+  /** Distinct sizes from the product's variants. */
+  sizes?: string[];
+  /** Distinct colours from the product's variants. */
+  colors?: string[];
+  /** Rich-text (HTML) description authored in admin. */
+  description?: string;
+  /** URL of the size-chart image. */
+  sizeChartImage?: string;
+}
+
+export function ProductDetail({ data }: { data?: ProductDetailData }) {
+  const gallery =
+    data?.gallery && data.gallery.length > 0 ? data.gallery : pdpProduct.gallery;
+  const name = data?.name ?? pdpProduct.name;
+  const orig = data?.orig ?? pdpProduct.orig;
+  const sale = data?.sale ?? pdpProduct.sale;
+  const discPct = data?.discPct ?? pdpProduct.discPct;
+  const sizes = data?.sizes && data.sizes.length > 0 ? data.sizes : pdpProduct.sizes;
+  const colors = data?.colors ?? [];
   const [active, setActive] = useState(0);
   const [selectedSize, setSelectedSize] = useState(sizes[0]);
+  const [selectedColor, setSelectedColor] = useState(colors[0] ?? "");
   const [qty, setQty] = useState(1);
+
+  const router = useRouter();
+  const { addItem } = useCart();
+  const toast = useToast();
+  const href = data?.href ?? "/products/ao-coc-cotton-van-mong-nau-tay-raclan";
+  const addToCart = () => {
+    addItem(
+      { href, name, img: gallery[0], price: parsePriceVnd(sale) },
+      qty,
+    );
+    toast.success("Đã thêm vào giỏ hàng", `${name} × ${qty}`);
+  };
+  const buyNow = () => {
+    addItem(
+      { href, name, img: gallery[0], price: parsePriceVnd(sale) },
+      qty,
+    );
+    router.push("/checkout");
+  };
 
   const prev = () => setActive((a) => (a - 1 + gallery.length) % gallery.length);
   const next = () => setActive((a) => (a + 1) % gallery.length);
@@ -53,7 +109,7 @@ export function ProductDetail() {
         <div className="mt-3 flex gap-2 overflow-x-auto">
           {gallery.map((src, i) => (
             <button
-              key={src}
+              key={i}
               type="button"
               onClick={() => setActive(i)}
               className="shrink-0"
@@ -81,13 +137,55 @@ export function ProductDetail() {
           <span className="rounded bg-[#dc2525] px-2 py-0.5 text-[13px] text-white">
             -{discPct}
           </span>
-          <a
-            href="#"
-            className="ml-auto text-[14px] text-[#a67b5b] underline"
-          >
-            Hướng dẫn chọn size
-          </a>
+          {data?.sizeChartImage ? (
+            <Dialog>
+              <DialogTrigger className="ml-auto cursor-pointer text-[14px] text-[#a67b5b] underline">
+                Hướng dẫn chọn size
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-2xl">
+                <DialogTitle>Hướng dẫn chọn size</DialogTitle>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={data.sizeChartImage}
+                  alt="Bảng size"
+                  className="w-full rounded-lg border border-black/10"
+                />
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <span className="ml-auto text-[14px] text-[#a67b5b] underline">
+              Hướng dẫn chọn size
+            </span>
+          )}
         </div>
+
+        {/* Color selector */}
+        {colors.length > 0 ? (
+          <div className="mt-6">
+            <p className="text-[12px] text-[#777]">
+              màu <span className="text-black">{selectedColor}</span>
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {colors.map((c) => {
+                const isActive = c === selectedColor;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setSelectedColor(c)}
+                    className={`rounded-full px-4 py-1.5 text-[15px] ${
+                      isActive
+                        ? "bg-black text-white"
+                        : "border border-black/20 bg-white text-black"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
 
         {/* Size selector */}
         <div className="mt-6">
@@ -142,12 +240,14 @@ export function ProductDetail() {
         <div className="mt-6 flex gap-3">
           <button
             type="button"
+            onClick={addToCart}
             className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5]"
           >
             Thêm vào giỏ hàng
           </button>
           <button
             type="button"
+            onClick={buyNow}
             className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5]"
           >
             Mua ngay

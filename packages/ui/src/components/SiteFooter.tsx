@@ -21,8 +21,8 @@ export function SiteFooter() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/cocandy/logo.png"
-              alt="COCANDY"
-              className="mb-3 h-12 w-auto"
+              alt="Tutu Kidswear"
+              className="mb-3 h-16 w-auto"
             />
             <h3 className="font-display text-[18px] font-bold text-black">
               {footerContact.blurbTitle}

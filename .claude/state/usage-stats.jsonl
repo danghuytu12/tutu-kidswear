@@ -1,2 +1,8 @@
 {"type":"skill","name":"clone-website","digest":"{\"skill\":\"clone-website\",\"args\":\"https://www.cocandy.vn/ https://www.cocandy.vn/products/ao-coc-cott","timestamp":"2026-07-02T11:29:05Z"}
 {"type":"skill","name":"clone-website","digest":"{\"skill\":\"clone-website\",\"args\":\"https://nextjs-demo.tailadmin.com/products-list https://nextjs-demo","timestamp":"2026-07-02T12:55:14Z"}
+{"type":"skill","name":"brainstorming","digest":"{\"skill\":\"superpowers:brainstorming\"}","timestamp":"2026-07-03T07:00:24Z"}
+{"type":"skill","name":"systematic-debugging","digest":"{\"skill\":\"superpowers:systematic-debugging\"}","timestamp":"2026-07-03T08:10:20Z"}
+{"type":"skill","name":"brainstorming","digest":"{\"skill\":\"superpowers:brainstorming\"}","timestamp":"2026-07-03T09:13:36Z"}
+{"type":"skill","name":"writing-plans","digest":"{\"skill\":\"superpowers:writing-plans\"}","timestamp":"2026-07-03T09:21:33Z"}
+{"type":"skill","name":"subagent-driven-development","digest":"{\"skill\":\"superpowers:subagent-driven-development\"}","timestamp":"2026-07-03T09:27:02Z"}
+{"type":"skill","name":"finishing-a-development-branch","digest":"{\"skill\":\"superpowers:finishing-a-development-branch\"}","timestamp":"2026-07-03T10:08:41Z"}

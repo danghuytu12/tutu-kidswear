@@ -1,1 +1,14 @@
-{}
+{
+  "168c6a67-2ae6-42e4-a3a2-d46e35a5722b": {
+    "short_id": "168c6a67-2ae",
+    "last_seen": 1783066183,
+    "pid": "1526433",
+    "status": "active"
+  },
+  "353ede1d-fa78-4d98-9785-5fc0cc570def": {
+    "short_id": "353ede1d-fa7",
+    "last_seen": 1783061816,
+    "pid": "1441736",
+    "status": "active"
+  }
+}
