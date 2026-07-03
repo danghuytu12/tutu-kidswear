@@ -1,0 +1,136 @@
+{
+  "version": "2.0.0",
+  "legacy_version": "1.0.0",
+  "artifactType": "structured-handoff",
+  "timestamp": "2026-07-03T10:16:42Z",
+  "sessionId": "",
+  "previous_state": {
+    "summary": "Before compaction: 20 recent edit(s)",
+    "plan_counts": {
+      "total": 0,
+      "wip": 0,
+      "blocked": 0,
+      "recent_edits": 20
+    }
+  },
+  "next_action": {
+    "summary": "Re-read Plans.md and determine the next task",
+    "source": "fallback",
+    "priority": "normal"
+  },
+  "open_risks": [
+    {
+      "severity": "medium",
+      "kind": "verification",
+      "summary": "20 recent edit(s) should be re-validated after resume",
+      "detail": ".claude/scheduled_tasks.lock, .claude/sessions/.last_inbox_check, .claude/sessions/.last_inbox_read_e4bd89b9-2d22-4564-8edc-019240eea721, .claude/sessions/active.json, .claude/sessions/broadcast.md"
+    }
+  ],
+  "failed_checks": null,
+  "decision_log": [
+    {
+      "timestamp": "2026-07-03T10:16:42Z",
+      "actor": "pre-compact-save",
+      "decision": "canonical_handoff_artifact_written",
+      "rationale": "Persist a stable JSON artifact in .claude/state for long-running session handoff."
+    },
+    {
+      "timestamp": "2026-07-03T10:16:42Z",
+      "actor": "pre-compact-save",
+      "decision": "legacy_snapshot_mirrored",
+      "rationale": "Keep precompact-snapshot.json for backward compatibility with older hooks."
+    }
+  ],
+  "context_reset": {
+    "policy": {
+      "mode": "auto",
+      "dryRun": false,
+      "thresholds": {
+        "wipTasks": 4,
+        "blockedTasks": 1,
+        "recentEdits": 8,
+        "failedChecks": 1,
+        "sessionAgeMinutes": 120
+      }
+    },
+    "recommended": true,
+    "summary": "Context reset recommended (auto): 20 recent edit count exceed threshold 8",
+    "reasons": [
+      "20 recent edit count exceed threshold 8"
+    ],
+    "candidates": [
+      {
+        "key": "wip_tasks",
+        "label": "WIP task count",
+        "actual": 0,
+        "threshold": 4,
+        "triggered": false
+      },
+      {
+        "key": "blocked_tasks",
+        "label": "blocked task count",
+        "actual": 0,
+        "threshold": 1,
+        "triggered": false
+      },
+      {
+        "key": "recent_edits",
+        "label": "recent edit count",
+        "actual": 20,
+        "threshold": 8,
+        "triggered": true
+      },
+      {
+        "key": "failed_checks",
+        "label": "failed check count",
+        "actual": 0,
+        "threshold": 1,
+        "triggered": false
+      },
+      {
+        "key": "session_age_minutes",
+        "label": "session age (minutes)",
+        "actual": 0,
+        "threshold": 120,
+        "triggered": false
+      }
+    ],
+    "counters": {
+      "wipTasks": 0,
+      "blockedTasks": 0,
+      "recentEdits": 20,
+      "failedChecks": 0,
+      "sessionAgeMinutes": null
+    }
+  },
+  "continuity": {
+    "plugin_first_workflow": true,
+    "resume_aware_effort_continuity": true,
+    "effort_hint": "medium",
+    "summary": "plugin-first workflow: enabled; resume-aware effort continuity: medium"
+  },
+  "planItems": null,
+  "wipTasks": null,
+  "recentEdits": [
+    ".claude/scheduled_tasks.lock",
+    ".claude/sessions/.last_inbox_check",
+    ".claude/sessions/.last_inbox_read_e4bd89b9-2d22-4564-8edc-019240eea721",
+    ".claude/sessions/active.json",
+    ".claude/sessions/broadcast.md",
+    ".claude/sessions/leases/09d3db7e6afc784fdd0979f338a689a4bdb48ce23375960039c637e528e6c548.lock",
+    ".claude/sessions/leases/1ae5a5e8c23bd3bc31ea590a9cbe48eb9ad3bbddc0fb5732d08c04a53c8ad51d.lock",
+    ".claude/sessions/leases/2551025a3076d57bb016f22eb273affbf7a596bb3647e1385be82f15bb869b21.lock",
+    ".claude/sessions/leases/7ae45ad102eab3b6d7e7896acd08c427a9b25b346470d7bc6507b6481575d519.lock",
+    ".claude/sessions/leases/85a51e5f85dc72455406e1f028a8c9662bc44f0132679f678e7a5ba3ba8ae07a.lock",
+    ".claude/sessions/leases/eb3c597600f410aa22219eea8df1cae38d42a56059e340ee9223dab1dcdaa790.lock",
+    ".claude/state/changed-files.jsonl",
+    ".claude/state/instructions-loaded.jsonl",
+    ".claude/state/session-skills-used.json",
+    ".claude/state/session.events.jsonl",
+    ".claude/state/usage-stats.jsonl",
+    ".claude/sessions/leases/010df32639d4acded63be5c61a33ea78a4ae07c194973ec52e99808de9519c32.lock",
+    ".claude/sessions/leases/06c03944729acba2b320f71eacd6a4948952b5d9960f006b553d7c6362bf2328.lock",
+    ".claude/sessions/leases/097a172c68821c24c4bdfb53e61630b912cbf7f38632518ed707a3730e0c7eb3.lock",
+    ".claude/sessions/leases/0a89930c8ac563918c1565b812136cd995257498f19b3d04f00ab4fd36c70788.lock"
+  ]
+}

@@ -68,7 +68,13 @@ export function OrderForm() {
       return;
     }
     const payload: OrderInput = {
-      items: items.map((i) => ({ name: i.name, price: i.price, qty: i.qty })),
+      items: items.map((i) => ({
+        name: i.name,
+        price: i.price,
+        qty: i.qty,
+        img: i.img,
+        href: i.href,
+      })),
       customerName: name.trim(),
       customerPhone: phone.trim(),
       customerEmail: email.trim() || undefined,

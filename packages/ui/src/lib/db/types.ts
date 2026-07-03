@@ -33,7 +33,21 @@ export interface OrderItem {
   name: string;
   price: number;
   qty: number;
+  /** Product thumbnail URL, captured at order time. Optional: older orders lack it. */
+  img?: string;
+  /** Storefront href of the product, captured at order time. Optional for older orders. */
+  href?: string;
 }
+
+/** All valid order statuses, in lifecycle order. Source of truth for UI + validation.
+ * Lives here (a pure, dependency-free module) so client components can import it
+ * without pulling in the mongodb driver via the repository. */
+export const ORDER_STATUSES = [
+  "pending",
+  "paid",
+  "shipped",
+  "cancelled",
+] as const;
 
 export interface OrderDoc {
   _id: string;
@@ -48,7 +62,7 @@ export interface OrderDoc {
   ward: string;
   note: string;
   paymentMethod: "cod" | "qr";
-  status: "pending" | "paid" | "shipped" | "cancelled";
+  status: (typeof ORDER_STATUSES)[number];
   createdAt: string;
 }
 

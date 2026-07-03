@@ -1,4 +1,4 @@
-import type { Document } from "mongodb";
+import { ObjectId, type Document } from "mongodb";
 import { ordersCollection } from "../collections";
 import type { OrderDoc, OrderInput } from "../types";
 
@@ -36,4 +36,18 @@ export async function createOrder(input: OrderInput): Promise<OrderDoc> {
   };
   const result = await col.insertOne(toInsert);
   return { _id: String(result.insertedId), ...toInsert };
+}
+
+export async function updateOrderStatus(
+  id: string,
+  status: OrderDoc["status"],
+): Promise<OrderDoc | null> {
+  if (!ObjectId.isValid(id)) return null;
+  const col = await ordersCollection();
+  const doc = await col.findOneAndUpdate(
+    { _id: new ObjectId(id) },
+    { $set: { status } },
+    { returnDocument: "after" },
+  );
+  return doc ? toOrderDoc(doc) : null;
 }
