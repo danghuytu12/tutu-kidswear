@@ -63,7 +63,7 @@ export function ProductCard({
             >
               Thêm nhanh vào giỏ +
             </button>
-            <div className="mt-1 flex flex-wrap justify-center gap-x-2 gap-y-0.5">
+            {/* <div className="mt-1 flex flex-wrap justify-center gap-x-2 gap-y-0.5">
               {sizes.map((s) => (
                 <button
                   key={s}
@@ -77,7 +77,7 @@ export function ProductCard({
                   {s}
                 </button>
               ))}
-            </div>
+            </div> */}
           </div>
         )}
       </div>
