@@ -10,7 +10,8 @@
     "./components/cart/*": "./src/components/cart/*.tsx",
     "./lib/*": "./src/lib/*.ts",
     "./lib/db/*": "./src/lib/db/*.ts",
-    "./lib/db/repositories/*": "./src/lib/db/repositories/*.ts"
+    "./lib/db/repositories/*": "./src/lib/db/repositories/*.ts",
+    "./lib/notify/*": "./src/lib/notify/*.ts"
   },
   "scripts": {
     "lint": "eslint src",
