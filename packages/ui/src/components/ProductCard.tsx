@@ -1,6 +1,8 @@
 "use client";
 
 import type { Product } from "@repo/ui/lib/types";
+import { useCart } from "./cart/CartContext";
+import { parsePriceVnd } from "../lib/cart";
 
 const DEFAULT_SIZES = ["73", "80", "90", "100", "110", "120", "130", "140", "150"];
 
@@ -22,6 +24,15 @@ export function ProductCard({
   hoverAdd = true,
   sizes = DEFAULT_SIZES,
 }: ProductCardProps) {
+  const { addItem } = useCart();
+  const add = () =>
+    addItem({
+      href: product.href,
+      name: product.name,
+      img: product.img,
+      price: parsePriceVnd(product.sale),
+    });
+
   return (
     <a href={product.href} className="group block">
       <div className="relative overflow-hidden rounded-md bg-white">
@@ -38,15 +49,25 @@ export function ProductCard({
         />
         {hoverAdd && (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 bg-white/90 px-2 py-2 opacity-0 backdrop-blur-sm transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
-            <p className="text-center text-[14px] font-bold text-black">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                add();
+              }}
+              className="w-full text-center text-[14px] font-bold text-black"
+            >
               Thêm nhanh vào giỏ +
-            </p>
+            </button>
             <div className="mt-1 flex flex-wrap justify-center gap-x-2 gap-y-0.5">
               {sizes.map((s) => (
                 <button
                   key={s}
                   type="button"
-                  onClick={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    add();
+                  }}
                   className="text-[16px] leading-tight text-black hover:text-[#c2864e]"
                 >
                   {s}
