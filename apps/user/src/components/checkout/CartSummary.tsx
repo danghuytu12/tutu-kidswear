@@ -1,14 +1,14 @@
 "use client";
 
+import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@repo/ui/components/cart/CartContext";
-import { formatVnd } from "@repo/ui/lib/cart";
-
-const SHIPPING_FEE = 30000;
+import { formatVnd, shippingFee } from "@repo/ui/lib/cart";
 
 export function CartSummary() {
-  const { items, totalPrice } = useCart();
+  const { items, totalPrice, totalQty, setQty, removeItem } = useCart();
   const isEmpty = items.length === 0;
-  const grand = isEmpty ? 0 : totalPrice + SHIPPING_FEE;
+  const ship = shippingFee(totalQty);
+  const grand = isEmpty ? 0 : totalPrice + ship;
 
   return (
     <div>
@@ -41,13 +41,48 @@ export function CartSummary() {
                 alt={it.name}
                 className="h-14 w-14 shrink-0 rounded-md object-cover"
               />
-              <span className="flex-1 text-[14px] text-black">{it.name}</span>
-              <span className="w-10 text-center text-[14px] text-black">
-                x{it.qty}
-              </span>
+              <div className="flex-1">
+                <p className="text-[14px] text-black">{it.name}</p>
+                <p className="mt-0.5 text-[12px] text-[#999]">
+                  {formatVnd(it.price)}
+                </p>
+              </div>
+
+              {/* Quantity stepper */}
+              <div className="inline-flex shrink-0 items-center rounded-full border border-black/20">
+                <button
+                  type="button"
+                  aria-label="Giảm số lượng"
+                  onClick={() => setQty(it.href, it.qty - 1)}
+                  className="flex h-8 w-8 items-center justify-center text-black"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <span className="w-7 text-center text-[14px] text-black">
+                  {it.qty}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Tăng số lượng"
+                  onClick={() => setQty(it.href, it.qty + 1)}
+                  className="flex h-8 w-8 items-center justify-center text-black"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
               <span className="w-24 text-right text-[14px] font-semibold text-[#c2864e]">
                 {formatVnd(it.price * it.qty)}
               </span>
+
+              <button
+                type="button"
+                aria-label="Xóa sản phẩm"
+                onClick={() => removeItem(it.href)}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#999] transition hover:bg-[#fef3f2] hover:text-[#b42318]"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </li>
           ))}
         </ul>
@@ -74,8 +109,19 @@ export function CartSummary() {
         </div>
         <div className="flex justify-between">
           <span>Giá giao hàng</span>
-          <span>{formatVnd(isEmpty ? 0 : SHIPPING_FEE)}</span>
+          <span>
+            {isEmpty || ship === 0 ? (
+              <span className="font-semibold text-[#027a48]">Miễn phí</span>
+            ) : (
+              formatVnd(ship)
+            )}
+          </span>
         </div>
+        {!isEmpty && ship > 0 ? (
+          <p className="text-[13px] text-[#a67b5b]">
+            Mua từ 2 sản phẩm để được miễn phí giao hàng!
+          </p>
+        ) : null}
         <div className="flex justify-between border-t pt-3">
           <span className="font-bold">Tổng tiền</span>
           <span className="text-[18px] font-bold">{formatVnd(grand)}</span>

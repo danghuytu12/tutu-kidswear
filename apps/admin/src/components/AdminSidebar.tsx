@@ -26,7 +26,7 @@ export function AdminSidebar() {
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-black/5 bg-white lg:flex">
       <div className="flex h-16 items-center gap-2 border-b border-black/5 px-6">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/cocandy/logo.png" alt="COCANDY" className="h-9 w-auto" />
+        <img src="/images/cocandy/logo.png" alt="Tutu Kidswear" className="h-12 w-auto" />
         <span className="font-display text-[15px] font-bold text-[#b08560]">
           Admin
         </span>
@@ -55,7 +55,7 @@ export function AdminSidebar() {
       </nav>
 
       <div className="border-t border-black/5 p-4 text-[12px] text-black/40">
-        COCANDY © 2026
+        Tutu Kidswear © 2026
       </div>
     </aside>
   );

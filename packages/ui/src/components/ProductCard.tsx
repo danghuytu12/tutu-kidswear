@@ -2,6 +2,7 @@
 
 import type { Product } from "@repo/ui/lib/types";
 import { useCart } from "./cart/CartContext";
+import { useToast } from "./ui/toast";
 import { parsePriceVnd } from "../lib/cart";
 
 const DEFAULT_SIZES = ["73", "80", "90", "100", "110", "120", "130", "140", "150"];
@@ -25,13 +26,16 @@ export function ProductCard({
   sizes = DEFAULT_SIZES,
 }: ProductCardProps) {
   const { addItem } = useCart();
-  const add = () =>
+  const toast = useToast();
+  const add = () => {
     addItem({
       href: product.href,
       name: product.name,
       img: product.img,
       price: parsePriceVnd(product.sale),
     });
+    toast.success("Đã thêm vào giỏ hàng", product.name);
+  };
 
   return (
     <a href={product.href} className="group block">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { DeliveryIcon, ChevronDownIcon } from "@repo/ui/components/icons";
 import { useCart } from "@repo/ui/components/cart/CartContext";
+import { useToast } from "@repo/ui/components/ui/toast";
 import type { OrderInput } from "@repo/ui/lib/db/types";
 
 const inputClass =
@@ -45,6 +46,7 @@ function SelectField({
 
 export function OrderForm() {
   const { items, clear } = useCart();
+  const toast = useToast();
   const [payment, setPayment] = useState<Payment>("cod");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -55,16 +57,14 @@ export function OrderForm() {
   const [ward, setWard] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
   async function placeOrder() {
-    setMessage(null);
     if (!name.trim() || !phone.trim() || !address.trim()) {
-      setMessage({ kind: "error", text: "Vui lòng nhập Họ tên, Số điện thoại và Địa chỉ." });
+      toast.error("Thiếu thông tin", "Vui lòng nhập Họ tên, Số điện thoại và Địa chỉ.");
       return;
     }
     if (items.length === 0) {
-      setMessage({ kind: "error", text: "Giỏ hàng đang trống." });
+      toast.error("Giỏ hàng đang trống");
       return;
     }
     const payload: OrderInput = {
@@ -97,12 +97,12 @@ export function OrderForm() {
         throw new Error(data.error ?? "Không thể tạo đơn hàng");
       }
       const data = (await res.json()) as { order: { _id: string } };
-      setMessage({ kind: "ok", text: `Đặt hàng thành công! Mã đơn: ${data.order._id}` });
+      toast.success("Đặt hàng thành công!", `Mã đơn: ${data.order._id}`);
       clear();
       setName(""); setPhone(""); setEmail(""); setAddress("");
       setProvince(""); setDistrict(""); setWard(""); setNote("");
     } catch (err) {
-      setMessage({ kind: "error", text: err instanceof Error ? err.message : "Không thể tạo đơn hàng" });
+      toast.error("Không thể tạo đơn hàng", err instanceof Error ? err.message : undefined);
     } finally {
       setSubmitting(false);
     }
@@ -246,24 +246,11 @@ export function OrderForm() {
         </label>
       </div>
 
-      {message ? (
-        <p
-          className={
-            "mt-4 rounded-lg px-4 py-3 text-[14px] " +
-            (message.kind === "ok"
-              ? "bg-[#ecfdf3] text-[#027a48]"
-              : "bg-[#fef3f2] text-[#b42318]")
-          }
-        >
-          {message.text}
-        </p>
-      ) : null}
-
       <button
         type="button"
         onClick={placeOrder}
         disabled={submitting}
-        className="mt-5 w-full rounded-full bg-[#b08560] py-3.5 text-[16px] font-semibold text-white hover:bg-[#8a6647] disabled:opacity-60"
+        className="mt-5 w-full cursor-pointer rounded-full bg-[#b08560] py-3.5 text-[16px] font-semibold text-white hover:bg-[#8a6647] disabled:opacity-60"
       >
         {submitting ? "Đang xử lý..." : "Thanh Toán"}
       </button>

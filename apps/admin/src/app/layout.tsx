@@ -27,8 +27,8 @@ const baloo2 = Baloo_2({
 });
 
 export const metadata: Metadata = {
-  title: "COCANDY Admin",
-  description: "Bảng quản trị COCANDY",
+  title: "Tutu Kidswear Admin",
+  description: "Bảng quản trị Tutu Kidswear",
 };
 
 export default function RootLayout({

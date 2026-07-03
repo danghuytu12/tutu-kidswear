@@ -5,18 +5,43 @@ import type { Product } from "../types";
 // safe to serialize across the API/Server-Component boundary.
 
 /**
+ * One purchasable variant of a product: a {color, size} combination with its
+ * own selling price. A product carries an array of these.
+ */
+export interface ProductVariant {
+  /** Colour label, e.g. "Đỏ", "Xanh navy". */
+  color: string;
+  /** Size label, e.g. "66", "90", "Freesize". */
+  size: string;
+  /** Selling price in VND before discount (giá bán). */
+  sellPrice: number;
+}
+
+/**
  * A product document. Extends the storefront `Product` shape so existing UI
  * components (ProductCard, ProductGrid) keep working after mapping.
+ *
+ * `price`/`sale`/`orig`/`disc`/`img` are DERIVED from `variants[0]` by the
+ * repository on write — they exist only so storefront UI keeps working. The
+ * source of truth for pricing is `variants`.
  */
 export interface ProductDoc extends Product {
   _id: string;
   /** e.g. "Áo", "Váy", "Đồ bơi" — admin-facing category. */
   category: string;
-  /** Brand / collection label. */
-  brand: string;
-  /** Numeric price in VND (source of truth; `sale` is the formatted string). */
+  /** Numeric price in VND (derived from variants[0].sellPrice after discount). */
   price: number;
   inStock: boolean;
+  /** Purchasable variants (color/size/pricing). Source of truth for price. */
+  variants: ProductVariant[];
+  /** Product-wide cost / purchase price in VND (giá mua). */
+  buyPrice?: number;
+  /** Product-wide discount percentage 0–100 (phần trăm khuyến mại). */
+  discountPct?: number;
+  /** Rich-text (HTML) product description authored in the admin editor. */
+  description?: string;
+  /** Optional URL of a size-chart image shown on the product page. */
+  sizeChartImage?: string;
   /**
    * All product image URLs (gallery). `img` mirrors `images[0]` as the
    * thumbnail used by list/card UI. Optional so older docs without it still map.
@@ -24,6 +49,8 @@ export interface ProductDoc extends Product {
   images?: string[];
   /** ISO date string. */
   createdAt: string;
+  /** @deprecated Brand/collection label — kept optional for older docs only. */
+  brand?: string;
 }
 
 /** Payload accepted when creating/updating a product (no _id/createdAt). */
@@ -48,6 +75,14 @@ export const ORDER_STATUSES = [
   "shipped",
   "cancelled",
 ] as const;
+
+/** Vietnamese display labels for each order status. Source of truth for UI + notifications. */
+export const ORDER_STATUS_LABELS: Record<(typeof ORDER_STATUSES)[number], string> = {
+  pending: "Chờ xử lý",
+  paid: "Đã thanh toán",
+  shipped: "Đã giao",
+  cancelled: "Đã hủy",
+};
 
 export interface OrderDoc {
   _id: string;

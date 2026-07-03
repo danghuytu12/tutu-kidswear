@@ -40,6 +40,15 @@ export default async function ProductPage({ params }: Params) {
             : doc.img
               ? [doc.img]
               : undefined,
+        // Distinct sizes/colours from variants (preserve order, drop blanks).
+        sizes: doc.variants?.length
+          ? [...new Set(doc.variants.map((v) => v.size).filter(Boolean))]
+          : undefined,
+        colors: doc.variants?.length
+          ? [...new Set(doc.variants.map((v) => v.color).filter(Boolean))]
+          : undefined,
+        description: doc.description || undefined,
+        sizeChartImage: doc.sizeChartImage || undefined,
       }
     : undefined;
 
@@ -57,7 +66,7 @@ export default async function ProductPage({ params }: Params) {
       <SiteHeader />
       <Breadcrumb items={breadcrumb} />
       <ProductDetail data={data} />
-      <ProductDescription />
+      <ProductDescription html={data?.description} />
       <ProductCarousel title="GỢI Ý SẢN PHẨM" products={similar} moreLabel="" />
       <ProductReviews />
       <SimilarProducts />

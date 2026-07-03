@@ -31,7 +31,7 @@ export default async function Home() {
       <AnnouncementBar />
       <SiteHeader />
       <HeroCarousel />
-      <CategoryQuickLinks />
+      {/* <CategoryQuickLinks /> */}
       <ProductTabsSection
         newList={slice(catalog, 0, 8, newProducts)}
         bestList={slice(catalog, 8, 8, bestsellerProducts)}

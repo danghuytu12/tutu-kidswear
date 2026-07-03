@@ -107,14 +107,11 @@ export const bstMenu: MegaMenu = {
   ],
 };
 
-export const megaMenus: MegaMenu[] = [beTraiMenu, beGaiMenu, bstMenu];
+export const megaMenus: MegaMenu[] = [beTraiMenu, beGaiMenu];
 
 // Simple (no-dropdown) nav links, in bar order.
 export const simpleNavLinks: NavLink[] = [
   { label: "Trang Chủ", href: "/" },
-  { label: "Outlet", href: "/categories/sale-he-thu" },
-  { label: "Cửa hàng", href: "/cua-hang" },
-  { label: "Blog", href: "/blog/all" },
 ];
 
 // Category quick-links row on the homepage (circular product tiles).
@@ -167,13 +164,13 @@ export const footerColumns: FooterColumn[] = [
     links: [
       "Hướng dẫn chọn size",
       "Tra cứu đơn hàng",
-      "Về Cocandy",
+      "Về Tutu Kidswear",
     ],
   },
 ];
 
 export const footerContact = {
-  blurbTitle: "COCANDY lắng nghe bạn!",
+  blurbTitle: "Tutu Kidswear lắng nghe bạn!",
   blurb:
     "Chúng tôi luôn trân trọng và mong đợi nhận được mọi ý kiến đóng góp từ khách hàng để có thể nâng cấp trải nghiệm dịch vụ và sản phẩm tốt hơn nữa.",
   businessName: "HỘ KINH DOANH PHẠM THỊ LAN ANH 1990",

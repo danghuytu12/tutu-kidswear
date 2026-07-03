@@ -2,9 +2,14 @@
 
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight, ChevronDown, Minus, Plus, X } from "lucide-react";
-import type { ProductDoc, ProductInput } from "@repo/ui/lib/db/types";
+import { ChevronRight, ChevronDown, Plus, X } from "lucide-react";
+import type {
+  ProductDoc,
+  ProductInput,
+  ProductVariant,
+} from "@repo/ui/lib/db/types";
 import { normalizeImageUrl } from "@repo/ui/lib/image-url";
+import { RichTextEditor } from "@/components/RichTextEditor";
 
 function Label({ text }: { text: string }) {
   return (
@@ -13,6 +18,9 @@ function Label({ text }: { text: string }) {
     </label>
   );
 }
+
+const inputClass =
+  "h-11 w-full rounded-lg border border-[#D0D5DD] bg-transparent px-4 py-2.5 text-sm text-[#1D2939] shadow-sm placeholder:text-[#98A2B3] focus:border-[#465FFF]/40 focus:outline-none focus:ring-3 focus:ring-[#465FFF]/20";
 
 function TextField({
   label,
@@ -35,7 +43,7 @@ function TextField({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-11 w-full rounded-lg border border-[#D0D5DD] bg-transparent px-4 py-2.5 text-sm text-[#1D2939] shadow-sm placeholder:text-[#98A2B3] focus:border-[#465FFF]/40 focus:outline-none focus:ring-3 focus:ring-[#465FFF]/20"
+        className={inputClass}
       />
     </div>
   );
@@ -106,14 +114,30 @@ function slugify(name: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-// Format a numeric VND price like 279650 -> "279.650 ₫".
-function formatVnd(price: number): string {
-  return `${price.toLocaleString("vi-VN")} ₫`;
+const CATEGORIES = ["Bé Trai", "Bé Gái"];
+
+type VariantRow = {
+  color: string;
+  size: string;
+  sellPrice: string;
+};
+
+function emptyVariant(): VariantRow {
+  return { color: "", size: "", sellPrice: "" };
 }
 
-const CATEGORIES = ["Áo", "Váy", "Chân váy", "Set bộ", "Đồ bơi", "Khác"];
-const BRANDS = ["COCANDY", "Apple", "Samsung", "LG"];
-const COLORS = ["Silver", "Black", "White", "Gray"];
+function toVariantRows(variants?: ProductVariant[]): VariantRow[] {
+  if (!variants?.length) return [emptyVariant()];
+  return variants.map((v) => ({
+    color: v.color,
+    size: v.size,
+    sellPrice: String(v.sellPrice),
+  }));
+}
+
+function toNumber(value: string): number {
+  return Number(value.replace(/[^\d.]/g, "")) || 0;
+}
 
 export function ProductForm({ initial }: { initial?: ProductDoc }) {
   const router = useRouter();
@@ -121,16 +145,19 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
 
   const [name, setName] = useState(initial?.name ?? "");
   const [category, setCategory] = useState(initial?.category ?? "");
-  const [brand, setBrand] = useState(initial?.brand ?? "");
-  const [color, setColor] = useState("");
-  const [price, setPrice] = useState(
-    initial ? String(initial.price) : "",
+  const [buyPrice, setBuyPrice] = useState(
+    initial?.buyPrice ? String(initial.buyPrice) : "",
   );
-  const [stock, setStock] = useState(0);
-  const [availability, setAvailability] = useState(
-    initial ? (initial.inStock ? "In Stock" : "Out of Stock") : "",
+  const [discountPct, setDiscountPct] = useState(
+    initial?.discountPct ? String(initial.discountPct) : "",
   );
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [sizeChartImage, setSizeChartImage] = useState(
+    initial?.sizeChartImage ?? "",
+  );
+  const [variants, setVariants] = useState<VariantRow[]>(
+    toVariantRows(initial?.variants),
+  );
   // Gallery image URLs (paste links). Start with the existing gallery when
   // editing, or a single empty row for adding.
   const [imageUrls, setImageUrls] = useState<string[]>(
@@ -157,15 +184,41 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
     });
   }
 
-  const inStock = availability !== "Out of Stock";
+  function setVariantAt(index: number, key: keyof VariantRow, value: string) {
+    setVariants((rows) =>
+      rows.map((r, i) => (i === index ? { ...r, [key]: value } : r)),
+    );
+  }
+  function addVariant() {
+    setVariants((rows) => [...rows, emptyVariant()]);
+  }
+  function removeVariant(index: number) {
+    setVariants((rows) => {
+      const next = rows.filter((_, i) => i !== index);
+      return next.length ? next : [emptyVariant()];
+    });
+  }
 
   async function submit(status: "draft" | "publish") {
     setError(null);
     if (!name.trim()) {
-      setError("Product Name is required.");
+      setError("Vui lòng nhập tên sản phẩm.");
       return;
     }
-    const priceNum = Number(price.replace(/[^\d.]/g, "")) || 0;
+
+    // Keep only variants that have at least a size or a colour filled in.
+    const cleanVariants: ProductVariant[] = variants
+      .filter((v) => v.color.trim() || v.size.trim())
+      .map((v) => ({
+        color: v.color.trim(),
+        size: v.size.trim(),
+        sellPrice: toNumber(v.sellPrice),
+      }));
+
+    if (cleanVariants.length === 0) {
+      setError("Vui lòng thêm ít nhất một biến thể (màu sắc / kích cỡ).");
+      return;
+    }
 
     // Normalize (e.g. Google Drive share links → direct) and drop blanks.
     const images = imageUrls
@@ -173,16 +226,22 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
       .filter((u) => u.length > 0);
     const thumbnail = images[0] || "/images/tailadmin/product/product-01.jpg";
 
+    // price/sale/orig/disc are derived server-side from variants[0]; send
+    // placeholders so the payload type is satisfied.
     const payload: ProductInput = {
       name: name.trim(),
       href: initial?.href ?? `/products/${slugify(name)}`,
       img: thumbnail,
       images,
-      sale: formatVnd(priceNum),
-      category: category || "Khác",
-      brand: brand || "COCANDY",
-      price: priceNum,
-      inStock: status === "publish" ? inStock : false,
+      sale: "",
+      category: category || "Bé Trai",
+      price: 0,
+      inStock: status === "publish",
+      variants: cleanVariants,
+      buyPrice: toNumber(buyPrice),
+      discountPct: Math.min(Math.max(toNumber(discountPct), 0), 100),
+      description,
+      sizeChartImage: normalizeImageUrl(sizeChartImage) || undefined,
     };
 
     setSubmitting(true);
@@ -239,124 +298,110 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
                 onChange={setCategory}
               />
             </div>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <SelectField
-                label="Brand"
-                placeholder="Select brand"
-                options={BRANDS}
-                value={brand}
-                onChange={setBrand}
-              />
-              <SelectField
-                label="Color"
-                placeholder="Select color"
-                options={COLORS}
-                value={color}
-                onChange={setColor}
-              />
-            </div>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-              <div>
-                <Label text="Price (VND)" />
-                <input
-                  type="number"
-                  placeholder="279000"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  className="h-11 w-full rounded-lg border border-[#D0D5DD] bg-transparent px-4 py-2.5 text-sm text-[#1D2939] shadow-sm placeholder:text-[#98A2B3] focus:border-[#465FFF]/40 focus:outline-none focus:ring-3 focus:ring-[#465FFF]/20"
-                />
-              </div>
-              <TextField
-                label="Length(CM)"
-                type="number"
-                placeholder="120"
-                value=""
-                onChange={() => {}}
-              />
-              <TextField
-                label="Width(CM)"
-                type="number"
-                placeholder="23"
-                value=""
-                onChange={() => {}}
-              />
-            </div>
             <div>
               <Label text="Description" />
-              <textarea
-                rows={6}
-                placeholder="Receipt Info (optional)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-lg border border-[#D0D5DD] bg-transparent px-4 py-2.5 text-sm text-[#1D2939] shadow-sm placeholder:text-[#98A2B3] focus:border-[#465FFF]/40 focus:outline-none focus:ring-3 focus:ring-[#465FFF]/10"
-              />
+              <RichTextEditor value={description} onChange={setDescription} />
             </div>
           </div>
         </SectionCard>
 
-        <SectionCard title="Pricing & Availability">
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-              <TextField
-                label="Weight(KG)"
-                type="number"
-                placeholder="15"
-                value=""
-                onChange={() => {}}
-              />
-              <TextField
-                label="Length(CM)"
-                type="number"
-                placeholder="120"
-                value=""
-                onChange={() => {}}
-              />
-              <TextField
-                label="Width(CM)"
-                type="number"
-                placeholder="23"
-                value=""
-                onChange={() => {}}
-              />
+        <SectionCard title="Biến thể (Màu sắc · Kích cỡ · Giá)">
+          <div className="space-y-4">
+            <p className="text-sm text-[#667085]">
+              Mỗi dòng là một biến thể của sản phẩm. Giá hiển thị trên
+              storefront lấy từ biến thể đầu tiên.
+            </p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] border-separate border-spacing-y-2">
+                <thead>
+                  <tr className="text-left text-xs font-medium text-[#667085]">
+                    <th className="px-2 font-medium">Màu sắc</th>
+                    <th className="px-2 font-medium">Kích cỡ</th>
+                    <th className="px-2 font-medium">Giá bán (VND)</th>
+                    <th className="w-10 px-2" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {variants.map((v, index) => (
+                    <tr key={index}>
+                      <td className="px-2">
+                        <input
+                          placeholder="Đỏ"
+                          value={v.color}
+                          onChange={(e) =>
+                            setVariantAt(index, "color", e.target.value)
+                          }
+                          className={inputClass}
+                        />
+                      </td>
+                      <td className="px-2">
+                        <input
+                          placeholder="90"
+                          value={v.size}
+                          onChange={(e) =>
+                            setVariantAt(index, "size", e.target.value)
+                          }
+                          className={inputClass}
+                        />
+                      </td>
+                      <td className="px-2">
+                        <input
+                          type="number"
+                          placeholder="279000"
+                          value={v.sellPrice}
+                          onChange={(e) =>
+                            setVariantAt(index, "sellPrice", e.target.value)
+                          }
+                          className={inputClass}
+                        />
+                      </td>
+                      <td className="px-2 text-center">
+                        <button
+                          type="button"
+                          aria-label="Xóa biến thể"
+                          onClick={() => removeVariant(index)}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#667085] transition hover:bg-[#FEF3F2] hover:text-[#B42318]"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
+            <button
+              type="button"
+              onClick={addVariant}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#D0D5DD] bg-white px-4 py-2.5 text-sm font-medium text-[#344054] shadow-sm transition hover:bg-gray-50"
+            >
+              <Plus className="h-4 w-4" />
+              Thêm biến thể
+            </button>
+
+            <div className="grid grid-cols-1 gap-5 border-t border-[#E4E7EC] pt-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1 inline-block text-sm font-semibold text-[#344054]">
-                  Stock Quantity
-                </label>
-                <div className="flex h-11 divide-x divide-[#D0D5DD] overflow-hidden rounded-lg border border-[#D0D5DD]">
-                  <button
-                    type="button"
-                    onClick={() => setStock((s) => Math.max(0, s - 1))}
-                    className="inline-flex h-11 w-11 items-center justify-center bg-white text-[#344054] transition hover:bg-gray-100"
-                  >
-                    <Minus className="h-5 w-5" />
-                  </button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={stock}
-                    onChange={(e) =>
-                      setStock(Number(e.target.value.replace(/[^\d]/g, "")) || 0)
-                    }
-                    className="h-11 w-full border-0 bg-transparent px-3 text-center text-sm text-[#1D2939] focus:outline-none focus:ring-0"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setStock((s) => s + 1)}
-                    className="inline-flex h-11 w-11 items-center justify-center bg-white text-[#344054] transition hover:bg-gray-100"
-                  >
-                    <Plus className="h-5 w-5" />
-                  </button>
-                </div>
+                <Label text="Giá mua (VND) — áp dụng cho cả sản phẩm" />
+                <input
+                  type="number"
+                  placeholder="200000"
+                  value={buyPrice}
+                  onChange={(e) => setBuyPrice(e.target.value)}
+                  className={inputClass}
+                />
               </div>
-              <SelectField
-                label="Availability Status"
-                placeholder="Select a Availability"
-                options={["In Stock", "Out of Stock"]}
-                value={availability}
-                onChange={setAvailability}
-              />
+              <div>
+                <Label text="% Khuyến mại (áp dụng cho cả sản phẩm)" />
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={discountPct}
+                  onChange={(e) => setDiscountPct(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
             </div>
           </div>
         </SectionCard>
@@ -394,7 +439,7 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
                       placeholder="https://drive.google.com/file/d/..."
                       value={url}
                       onChange={(e) => setImageUrlAt(index, e.target.value)}
-                      className="h-11 w-full rounded-lg border border-[#D0D5DD] bg-transparent px-4 py-2.5 text-sm text-[#1D2939] shadow-sm placeholder:text-[#98A2B3] focus:border-[#465FFF]/40 focus:outline-none focus:ring-3 focus:ring-[#465FFF]/20"
+                      className={inputClass}
                     />
                     <button
                       type="button"
@@ -417,6 +462,31 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
               <Plus className="h-4 w-4" />
               Thêm ảnh
             </button>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Ảnh bảng size">
+          <div className="flex items-center gap-3">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#E4E7EC] bg-[#F9FAFB]">
+              {sizeChartImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={normalizeImageUrl(sizeChartImage)}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-xs text-[#98A2B3]">Size</span>
+              )}
+            </div>
+            <input
+              type="url"
+              inputMode="url"
+              placeholder="https://.../bang-size.jpg"
+              value={sizeChartImage}
+              onChange={(e) => setSizeChartImage(e.target.value)}
+              className={inputClass}
+            />
           </div>
         </SectionCard>
 

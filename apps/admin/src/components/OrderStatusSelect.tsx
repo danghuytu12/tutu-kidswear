@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ORDER_STATUSES, type OrderDoc } from "@repo/ui/lib/db/types";
+import {
+  ORDER_STATUSES,
+  ORDER_STATUS_LABELS,
+  type OrderDoc,
+} from "@repo/ui/lib/db/types";
 
 type Status = OrderDoc["status"];
 
@@ -13,12 +17,7 @@ const STATUS_STYLES: Record<Status, string> = {
   cancelled: "bg-[#FEF3F2] text-[#B42318]",
 };
 
-const STATUS_LABELS: Record<Status, string> = {
-  pending: "Chờ xử lý",
-  paid: "Đã thanh toán",
-  shipped: "Đã giao",
-  cancelled: "Đã hủy",
-};
+const STATUS_LABELS = ORDER_STATUS_LABELS;
 
 // Inline status changer for one order row. Optimistically shows the new value,
 // PATCHes the admin API, and refreshes the server-rendered list on success.

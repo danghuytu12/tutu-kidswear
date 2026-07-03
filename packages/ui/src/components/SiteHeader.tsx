@@ -78,8 +78,8 @@ export function SiteHeader() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/cocandy/logo.png"
-            alt="COCANDY"
-            className="h-14 w-auto"
+            alt="Tutu Kidswear"
+            className="h-16 w-auto"
           />
         </Link>
 
@@ -146,8 +146,8 @@ export function SiteHeader() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/cocandy/logo.png"
-                alt="COCANDY"
-                className="h-10 w-auto"
+                alt="Tutu Kidswear"
+                className="h-12 w-auto"
               />
               <button
                 type="button"

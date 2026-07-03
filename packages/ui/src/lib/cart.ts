@@ -20,3 +20,16 @@ export function parsePriceVnd(sale: string): number {
 export function formatVnd(price: number): string {
   return `${price.toLocaleString("vi-VN")} ₫`;
 }
+
+/** Shipping fee (VND) applied to orders with only 1 item. */
+export const SINGLE_ITEM_SHIPPING_FEE = 29000;
+
+/**
+ * Shipping fee based on total quantity: free from 2 items up, otherwise a flat
+ * 25.000₫. An empty cart has no fee.
+ * @param totalQty sum of all item quantities in the cart.
+ */
+export function shippingFee(totalQty: number): number {
+  if (totalQty <= 0) return 0;
+  return totalQty >= 2 ? 0 : SINGLE_ITEM_SHIPPING_FEE;
+}
