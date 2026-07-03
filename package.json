@@ -40,7 +40,8 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "check": "turbo run lint typecheck build"
+    "check": "turbo run lint typecheck build",
+    "seed": "node --experimental-strip-types scripts/seed-db.mjs"
   },
   "devDependencies": {
     "turbo": "^2.5.0"
