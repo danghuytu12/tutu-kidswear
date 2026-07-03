@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCart } from "@repo/ui/components/cart/CartContext";
+import { parsePriceVnd } from "@repo/ui/lib/cart";
 import { pdpProduct } from "@repo/ui/lib/products";
 import {
   ChevronLeftIcon,
@@ -13,11 +16,41 @@ import {
   DeliveryIcon,
 } from "@repo/ui/components/icons";
 
-export function ProductDetail() {
-  const { gallery, name, orig, sale, discPct, sizes } = pdpProduct;
+// Optional overrides from the DB product (by slug). Rich fields not stored in
+// the DB (sizes, reviews) still come from the static pdpProduct.
+export interface ProductDetailData {
+  name?: string;
+  orig?: string;
+  sale?: string;
+  discPct?: string;
+  gallery?: string[];
+  href?: string;
+}
+
+export function ProductDetail({ data }: { data?: ProductDetailData }) {
+  const gallery =
+    data?.gallery && data.gallery.length > 0 ? data.gallery : pdpProduct.gallery;
+  const name = data?.name ?? pdpProduct.name;
+  const orig = data?.orig ?? pdpProduct.orig;
+  const sale = data?.sale ?? pdpProduct.sale;
+  const discPct = data?.discPct ?? pdpProduct.discPct;
+  const sizes = pdpProduct.sizes;
   const [active, setActive] = useState(0);
   const [selectedSize, setSelectedSize] = useState(sizes[0]);
   const [qty, setQty] = useState(1);
+
+  const router = useRouter();
+  const { addItem } = useCart();
+  const href = data?.href ?? "/products/ao-coc-cotton-van-mong-nau-tay-raclan";
+  const addToCart = () =>
+    addItem(
+      { href, name, img: gallery[0], price: parsePriceVnd(sale) },
+      qty,
+    );
+  const buyNow = () => {
+    addToCart();
+    router.push("/checkout");
+  };
 
   const prev = () => setActive((a) => (a - 1 + gallery.length) % gallery.length);
   const next = () => setActive((a) => (a + 1) % gallery.length);
@@ -142,12 +175,14 @@ export function ProductDetail() {
         <div className="mt-6 flex gap-3">
           <button
             type="button"
+            onClick={addToCart}
             className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5]"
           >
             Thêm vào giỏ hàng
           </button>
           <button
             type="button"
+            onClick={buyNow}
             className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5]"
           >
             Mua ngay
