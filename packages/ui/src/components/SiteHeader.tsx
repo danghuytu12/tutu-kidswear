@@ -11,6 +11,7 @@ import {
   MenuIcon,
   CloseIcon,
 } from "@repo/ui/components/icons";
+import { useCart } from "./cart/CartContext";
 
 // Ordered nav: Trang Chủ | Bé Trai▾ | Bé Gái▾ | Bộ Sưu Tập▾ | Outlet | Cửa hàng | Blog
 const [trangChu, ...restSimple] = simpleNavLinks;
@@ -56,6 +57,7 @@ function MegaMenuItem({ menu }: { menu: MegaMenu }) {
 }
 
 export function SiteHeader() {
+  const { totalQty } = useCart();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
@@ -126,7 +128,7 @@ export function SiteHeader() {
           <a href="/checkout" className="relative" aria-label="Giỏ hàng">
             <CartIcon className="h-7 w-7 text-[#b08560]" />
             <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#facc15] px-1 text-[10px] font-bold text-black">
-              0
+              {totalQty}
             </span>
           </a>
         </div>
