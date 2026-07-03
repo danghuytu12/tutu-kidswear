@@ -37,7 +37,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate from localStorage on mount.
+  // Hydrate from localStorage on mount. This intentionally sets state inside an
+  // effect: localStorage is unavailable during SSR, and doing it in an effect
+  // (rather than a lazy initializer) keeps the server and client's FIRST render
+  // identical (empty cart), avoiding a hydration mismatch on the header badge.
+  // The one-time populate is not a cascading-render problem.
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -45,19 +49,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const parsed: unknown = JSON.parse(raw);
         // Validate shape: a bad/legacy value could otherwise inject NaN prices.
         if (Array.isArray(parsed)) {
-          setItems(
-            parsed.filter(
-              (i): i is CartItem =>
-                !!i &&
-                typeof i === "object" &&
-                typeof (i as CartItem).href === "string" &&
-                typeof (i as CartItem).name === "string" &&
-                typeof (i as CartItem).price === "number" &&
-                Number.isFinite((i as CartItem).price) &&
-                typeof (i as CartItem).qty === "number" &&
-                (i as CartItem).qty > 0,
-            ),
+          const valid = parsed.filter(
+            (i): i is CartItem =>
+              !!i &&
+              typeof i === "object" &&
+              typeof (i as CartItem).href === "string" &&
+              typeof (i as CartItem).name === "string" &&
+              typeof (i as CartItem).price === "number" &&
+              Number.isFinite((i as CartItem).price) &&
+              typeof (i as CartItem).qty === "number" &&
+              (i as CartItem).qty > 0,
           );
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          if (valid.length) setItems(valid);
         }
       }
     } catch {
