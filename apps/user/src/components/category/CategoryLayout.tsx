@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ProductCard } from "@repo/ui/components/ProductCard";
-import { saleHeThuProducts } from "@repo/ui/lib/products";
+import type { Product } from "@repo/ui/lib/types";
 import { sizeOptions, priceFilterOptions } from "@repo/ui/lib/navigation";
 
 const SORT_OPTIONS = [
@@ -70,7 +70,7 @@ function FilterSidebar() {
   );
 }
 
-export function CategoryLayout() {
+export function CategoryLayout({ products }: { products: Product[] }) {
   return (
     <div className="cocandy-container grid gap-8 py-6 lg:grid-cols-[240px_1fr]">
       <FilterSidebar />
@@ -87,11 +87,17 @@ export function CategoryLayout() {
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3">
-          {saleHeThuProducts.map((p) => (
-            <ProductCard key={p.href} product={p} hoverAdd={false} />
-          ))}
-        </div>
+        {products.length === 0 ? (
+          <p className="py-16 text-center text-[15px] text-[#999]">
+            Chưa có sản phẩm nào.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3">
+            {products.map((p) => (
+              <ProductCard key={p.href} product={p} hoverAdd={false} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,38 +9,51 @@ import { ProductTabsSection } from "@/components/home/ProductTabsSection";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { RecentlyViewed } from "@/components/home/RecentlyViewed";
 import {
+  newProducts,
+  bestsellerProducts,
   swimProducts,
   teeProducts,
   saleHeThuProducts,
   mellowProducts,
 } from "@repo/ui/lib/products";
+import { getCatalog, slice } from "@/lib/catalog";
 
-export default function Home() {
+// Read the shared catalog (products created in admin) at request time.
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  // One DB read; different slices feed each section. Empty DB → static arrays.
+  const catalog = await getCatalog();
+
   return (
     <>
       <AnnouncementBar />
       <SiteHeader />
       <HeroCarousel />
       <CategoryQuickLinks />
-      <ProductTabsSection />
+      <ProductTabsSection
+        newList={slice(catalog, 0, 8, newProducts)}
+        bestList={slice(catalog, 8, 8, bestsellerProducts)}
+      />
       <PromoBanner
         src="/images/cocandy/banner-1.png"
         href="/categories/bst-do-boi"
       />
       <ProductCarousel
         title="BST đồ bơi"
-        products={swimProducts}
+        products={slice(catalog, 16, 8, swimProducts)}
         moreHref="/categories/bst-do-boi"
       />
       <PromoBanner src="/images/cocandy/banner-2.png" href="/categories/bst" />
       <ProductCarousel
         title="BST ÁO THUN"
-        products={teeProducts}
+        products={slice(catalog, 24, 8, teeProducts)}
         moreHref="/categories/ao"
       />
       <ProductCarousel
         title="SALE HÈ THU"
-        products={saleHeThuProducts.slice(0, 8)}
+        products={slice(catalog, 32, 8, saleHeThuProducts.slice(0, 8))}
         moreHref="/categories/sale-he-thu"
       />
       <PromoBanner
@@ -49,7 +62,7 @@ export default function Home() {
       />
       <ProductCarousel
         title="BST MELLOW CANDY"
-        products={mellowProducts}
+        products={slice(catalog, 40, 8, mellowProducts)}
         topRightLabel="Xem thêm"
         topRightHref="/categories/bst-mellow-candy"
         moreHref="/categories/bst-mellow-candy"

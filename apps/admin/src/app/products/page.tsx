@@ -4,12 +4,21 @@ import {
   ChevronRight,
   ChevronsUpDown,
   Download,
+  Pencil,
   Plus,
   Search,
   SlidersHorizontal,
 } from "lucide-react";
+import { listProducts } from "@repo/ui/lib/db/repositories/products";
+import type { ProductDoc } from "@repo/ui/lib/db/types";
+import { DeleteProductButton } from "@/components/DeleteProductButton";
+
+// Read live from the shared MongoDB; never cache at build time.
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type ProductRow = {
+  id: string;
   img: string;
   name: string;
   category: string;
@@ -19,8 +28,35 @@ type ProductRow = {
   date: string;
 };
 
-const PRODUCTS: ProductRow[] = [
+// Format an ISO date -> "01 Dec, 2027" (matches the TailAdmin design).
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function toRow(doc: ProductDoc): ProductRow {
+  return {
+    id: doc._id,
+    img: doc.img,
+    name: doc.name,
+    category: doc.category,
+    brand: doc.brand,
+    price: doc.sale,
+    inStock: doc.inStock,
+    date: formatDate(doc.createdAt),
+  };
+}
+
+// Static demo rows — used as a fallback when the database is empty or unreachable
+// so the page (and `next build`) never break.
+const FALLBACK_PRODUCTS: ProductRow[] = [
   {
+    id: "",
     img: "/images/tailadmin/product/product-03.jpg",
     name: "ASUS ROG Gaming Laptop",
     category: "Laptop",
@@ -30,6 +66,7 @@ const PRODUCTS: ProductRow[] = [
     date: "01 Dec, 2027",
   },
   {
+    id: "",
     img: "/images/tailadmin/product/product-01.jpg",
     name: "Airpods Pro 2nd Gen",
     category: "Accessories",
@@ -39,6 +76,7 @@ const PRODUCTS: ProductRow[] = [
     date: "29 Jun, 2027",
   },
   {
+    id: "",
     img: "/images/tailadmin/product/product-02.jpg",
     name: "Apple Watch Ultra",
     category: "Watch",
@@ -48,6 +86,7 @@ const PRODUCTS: ProductRow[] = [
     date: "13 Mar, 2027",
   },
   {
+    id: "",
     img: "/images/tailadmin/product/product-01.jpg",
     name: "Bose QuietComfort Earbuds",
     category: "Audio",
@@ -57,6 +96,7 @@ const PRODUCTS: ProductRow[] = [
     date: "18 Nov, 2027",
   },
   {
+    id: "",
     img: "/images/tailadmin/product/product-02.jpg",
     name: "Canon EOS R5 Camera",
     category: "Camera",
@@ -66,6 +106,7 @@ const PRODUCTS: ProductRow[] = [
     date: "28 Sep, 2027",
   },
   {
+    id: "",
     img: "/images/tailadmin/product/product-04.jpg",
     name: "Dell XPS 13 Laptop",
     category: "Laptop",
@@ -75,6 +116,7 @@ const PRODUCTS: ProductRow[] = [
     date: "18 Aug, 2027",
   },
   {
+    id: "",
     img: "/images/tailadmin/product/product-05.jpg",
     name: "Google Pixel 8 Pro",
     category: "Phone",
@@ -94,7 +136,22 @@ const SORTABLE_COLUMNS = [
   "Created At",
 ] as const;
 
-export default function ProductsPage() {
+async function loadProducts(): Promise<ProductRow[]> {
+  try {
+    // An empty DB is a valid state: the admin starts empty and products are
+    // created here. Return the real (possibly empty) list so the table shows
+    // an empty state rather than fake demo rows.
+    const docs = await listProducts();
+    return docs.map(toRow);
+  } catch {
+    // DB unreachable / not configured — show demo rows so the page still renders.
+    return FALLBACK_PRODUCTS;
+  }
+}
+
+export default async function ProductsPage() {
+  const products = await loadProducts();
+
   return (
     <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -175,7 +232,20 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {PRODUCTS.map((p) => (
+              {products.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-5 py-16 text-center">
+                    <p className="text-sm text-[#667085]">
+                      Chưa có sản phẩm nào. Nhấn{" "}
+                      <span className="font-medium text-[#1D2939]">
+                        + Add Product
+                      </span>{" "}
+                      để thêm sản phẩm đầu tiên.
+                    </p>
+                  </td>
+                </tr>
+              ) : null}
+              {products.map((p) => (
                 <tr
                   key={`${p.name}-${p.date}`}
                   className="border-b border-[#E4E7EC] transition hover:bg-gray-50"
@@ -219,7 +289,20 @@ export default function ProductsPage() {
                   <td className="px-5 py-4 whitespace-nowrap">
                     <span className="text-sm text-[#344054]">{p.date}</span>
                   </td>
-                  <td className="px-5 py-4" />
+                  <td className="px-5 py-4">
+                    {p.id ? (
+                      <div className="flex items-center gap-1">
+                        <Link
+                          href={`/edit-product/${p.id}`}
+                          aria-label="Edit product"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#667085] transition hover:bg-[#465FFF]/10 hover:text-[#465FFF]"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                        <DeleteProductButton id={p.id} />
+                      </div>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -227,7 +310,11 @@ export default function ProductsPage() {
         </div>
 
         <div className="flex flex-col items-center justify-between gap-3 border-t border-[#E4E7EC] px-5 py-4 sm:flex-row">
-          <p className="text-sm text-[#667085]">Showing 1 to 7 of 20</p>
+          <p className="text-sm text-[#667085]">
+            {products.length === 0
+              ? "Showing 0 of 0"
+              : `Showing 1 to ${products.length} of ${products.length}`}
+          </p>
           <div className="flex items-center gap-2">
             <button
               type="button"
