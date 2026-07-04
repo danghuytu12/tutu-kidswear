@@ -38,6 +38,10 @@ export interface ProductDoc extends Product {
   buyPrice?: number;
   /** Product-wide discount percentage 0–100 (phần trăm khuyến mại). */
   discountPct?: number;
+  /** Flagged as a "new arrival" (sản phẩm mới) in admin. Absent/false = not new. */
+  isNew?: boolean;
+  /** Flagged as a "best seller" (sản phẩm bán chạy) in admin. Absent/false = not a best seller. */
+  isBestSeller?: boolean;
   /** Rich-text (HTML) product description authored in the admin editor. */
   description?: string;
   /** Optional URL of a size-chart image shown on the product page. */

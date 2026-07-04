@@ -86,6 +86,35 @@ function SelectField({
   );
 }
 
+function CheckboxField({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[#E4E7EC] p-4 transition hover:bg-gray-50">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
+      />
+      <span>
+        <span className="block text-sm font-medium text-[#344054]">{label}</span>
+        <span className="mt-0.5 block text-xs text-[#667085]">
+          {description}
+        </span>
+      </span>
+    </label>
+  );
+}
+
 function SectionCard({
   title,
   children,
@@ -152,6 +181,10 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
     initial?.discountPct ? String(initial.discountPct) : "",
   );
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [isNew, setIsNew] = useState(Boolean(initial?.isNew));
+  const [isBestSeller, setIsBestSeller] = useState(
+    Boolean(initial?.isBestSeller),
+  );
   const [sizeChartImage, setSizeChartImage] = useState(
     initial?.sizeChartImage ?? "",
   );
@@ -240,6 +273,8 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
       variants: cleanVariants,
       buyPrice: toNumber(buyPrice),
       discountPct: Math.min(Math.max(toNumber(discountPct), 0), 100),
+      isNew,
+      isBestSeller,
       description,
       sizeChartImage: normalizeImageUrl(sizeChartImage) || undefined,
     };
@@ -301,6 +336,23 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
             <div>
               <Label text="Description" />
               <RichTextEditor value={description} onChange={setDescription} />
+            </div>
+            <div>
+              <Label text="Nổi bật" />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <CheckboxField
+                  label="Sản phẩm mới"
+                  description="Đánh dấu là hàng mới về."
+                  checked={isNew}
+                  onChange={setIsNew}
+                />
+                <CheckboxField
+                  label="Sản phẩm bán chạy"
+                  description="Đánh dấu là hàng bán chạy."
+                  checked={isBestSeller}
+                  onChange={setIsBestSeller}
+                />
+              </div>
             </div>
           </div>
         </SectionCard>

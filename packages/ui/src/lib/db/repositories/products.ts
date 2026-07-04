@@ -56,6 +56,8 @@ function normalizeProductInput(input: ProductInput): ProductInput {
     ...input,
     variants,
     discountPct,
+    isNew: Boolean(input.isNew),
+    isBestSeller: Boolean(input.isBestSeller),
     img: thumbnail,
     price: pricing.price,
     sale: pricing.sale,
