@@ -40,7 +40,14 @@ Wraps an icon/button/card for hover + tap motion.
 - Props: `children`, `className?`, `lift?: number` (default 4).
 - Motion: `whileHover={{ y: -lift, scale: 1.03 }}`, `whileTap={{ scale: 0.97 }}`, `transition={{ type: "spring", stiffness: 300, damping: 20 }}`.
 
-All three are `"use client"`, minimal, and export from `@repo/ui/components/motion`.
+### 4. `MotionButton`
+A `<motion.button>` drop-in for CTAs and action buttons (add-to-cart, "Thanh Toán", "Mua ngay", quantity steppers, "Xác nhận đã chuyển khoản", tab toggles, carousel arrows).
+- Props: forwards all native `<button>` props (`onClick`, `disabled`, `type`, `className`, `children`, `aria-*`).
+- Motion: `whileHover={{ scale: 1.04 }}`, `whileTap={{ scale: 0.95 }}`, `transition={{ type: "spring", stiffness: 400, damping: 17 }}`.
+- Disabled state: when `disabled`, hover/tap motion is suppressed (no scale) so a disabled button feels inert.
+- Snappier than `HoverLift` (higher stiffness, no lift) — buttons "press", cards "float".
+
+All four are `"use client"`, minimal, and export from `@repo/ui/components/motion`.
 
 ## Application map
 
@@ -52,7 +59,8 @@ All three are `"use client"`, minimal, and export from `@repo/ui/components/moti
 | Category | `category/CategoryLayout` | grid via `StaggerGrid` |
 | Checkout | `checkout/CheckoutLayout`, `OrderForm`, `CartSummary` | `Reveal` per block |
 | Shared grid/carousel | `ProductGrid`, `ProductCarousel` | `StaggerGrid` for cards |
-| Product card | `ProductCard` | hover lift + image zoom (keep existing group-hover, smooth it) |
+| Product card | `ProductCard` | hover lift + image zoom (keep existing group-hover, smooth it); "Thêm nhanh vào giỏ" button → `MotionButton` |
+| Buttons / CTAs | `ProductDetail` (Thêm vào giỏ, Mua ngay, qty steppers), `OrderForm` (Thanh Toán), `QrPaymentModal` (Xác nhận), `ProductTabsSection` (tab toggles), `ProductCarousel`/gallery arrows | `MotionButton` |
 | Floating widgets | `FloatingWidgets` | `HoverLift` on each icon |
 | Header | `SiteHeader` | mega menu: `AnimatePresence` fade+slide 8px; mobile drawer: slide-in + backdrop fade |
 
@@ -70,9 +78,10 @@ Playwright at 3 viewports:
 2. Product grid cards reveal in sequence (opacity resolves to 1).
 3. Hover a product card → image scales up, card lifts.
 4. Open mega menu + mobile drawer → they animate and become visible.
-5. No console errors; no horizontal page overflow (layout-shift check).
-6. `npm run typecheck` + `npm run lint` clean.
-7. Screenshots captured per viewport.
+5. Hover/press a CTA button (e.g. "Thêm vào giỏ hàng") → it scales on hover and presses on tap; a disabled button does not scale.
+6. No console errors; no horizontal page overflow (layout-shift check).
+7. `npm run typecheck` + `npm run lint` clean.
+8. Screenshots captured per viewport.
 
 ## Non-goals
 
