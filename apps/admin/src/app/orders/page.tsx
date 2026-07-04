@@ -34,6 +34,11 @@ function formatVnd(price: number): string {
   return `${price.toLocaleString("vi-VN")} ₫`;
 }
 
+/** Short order code from the ObjectId: last 8 chars, uppercased (e.g. "#84035766"). */
+function orderCode(id: string): string {
+  return `#${id.slice(-8).toUpperCase()}`;
+}
+
 function fullAddress(o: OrderDoc): string {
   return [o.address, o.ward, o.district, o.province].filter(Boolean).join(", ");
 }
@@ -76,7 +81,7 @@ export default async function OrdersPage() {
         <Table>
           <TableHeader>
             <TableRow className="border-[#E4E7EC] hover:bg-transparent">
-              {["Khách hàng", "Sản phẩm", "Địa chỉ", "Thanh toán", "Biên lai", "Trạng thái", "Tổng tiền", "Ngày đặt", "Thao tác"].map(
+              {["Mã đơn", "Khách hàng", "Sản phẩm", "Địa chỉ", "Thanh toán", "Biên lai", "Trạng thái", "Tổng tiền", "Ngày đặt", "Thao tác"].map(
                 (label) => (
                   <TableHead key={label} className="text-[#344054]">
                     {label}
@@ -88,13 +93,18 @@ export default async function OrdersPage() {
           <TableBody>
             {orders.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={9} className="py-16 text-center">
+                <TableCell colSpan={10} className="py-16 text-center">
                   <p className="text-sm text-[#667085]">Chưa có đơn hàng nào.</p>
                 </TableCell>
               </TableRow>
             ) : null}
             {orders.map((o) => (
               <TableRow key={o._id} className="border-[#E4E7EC] hover:bg-gray-50">
+                <TableCell className="whitespace-nowrap">
+                  <span className="font-mono text-sm font-medium text-[#344054]">
+                    {orderCode(o._id)}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-[#344054]">

@@ -15,6 +15,11 @@ function formatVnd(n: number): string {
   return `${n.toLocaleString("vi-VN")} ₫`;
 }
 
+/** Short order code from the ObjectId: last 8 chars, uppercased (e.g. "#84035766"). */
+function orderCode(id: string): string {
+  return `#${id.slice(-8).toUpperCase()}`;
+}
+
 /** Vietnamese relative time: "vừa xong" / "N phút trước" / "N giờ trước" / "N ngày trước". */
 function relativeTime(iso: string): string {
   const then = new Date(iso).getTime();
@@ -115,7 +120,7 @@ export function NotificationBell() {
                     className="flex w-full cursor-pointer flex-col gap-0.5 border-b border-[#F2F4F7] px-4 py-3 text-left hover:bg-[#faf6ef]"
                   >
                     <span className="text-sm font-medium text-[#344054]">
-                      Đơn hàng mới từ {o.customerName}
+                      Đơn hàng mới {orderCode(o._id)}
                     </span>
                     <span className="flex items-center justify-between text-xs text-[#667085]">
                       <span>{formatVnd(o.total)}</span>
