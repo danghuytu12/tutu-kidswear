@@ -97,6 +97,8 @@ export interface OrderDoc {
   ward: string;
   note: string;
   paymentMethod: "cod" | "qr";
+  /** Base64 (data URL) of the bank-transfer receipt — QR orders only. */
+  paymentProof?: string;
   status: (typeof ORDER_STATUSES)[number];
   createdAt: string;
 }
@@ -112,6 +114,8 @@ export type OrderInput = {
   ward: string;
   note: string;
   paymentMethod: "cod" | "qr";
+  /** Base64 (data URL) of the bank-transfer receipt — QR orders only. */
+  paymentProof?: string;
 };
 
 export interface CustomerDoc {

@@ -4,7 +4,9 @@ import { useState } from "react";
 import { DeliveryIcon } from "@repo/ui/components/icons";
 import { useCart } from "@repo/ui/components/cart/CartContext";
 import { useToast } from "@repo/ui/components/ui/toast";
+import { shippingFee } from "@repo/ui/lib/cart";
 import type { OrderInput } from "@repo/ui/lib/db/types";
+import { QrPaymentModal } from "./QrPaymentModal";
 
 const inputClass =
   "rounded-full border border-black/15 px-5 py-3 text-[15px] w-full outline-none focus:border-[#b08560] placeholder:text-black/40";
@@ -16,7 +18,7 @@ type Payment = "cod" | "qr";
 const PHONE_RE = /^0(3[2-9]|5[25689]|7[06-9]|8[1-9]|9\d)\d{7}$/;
 
 export function OrderForm() {
-  const { items, clear } = useCart();
+  const { items, totalPrice, totalQty, clear } = useCart();
   const toast = useToast();
   const [payment, setPayment] = useState<Payment>("cod");
   const [name, setName] = useState("");
@@ -24,20 +26,34 @@ export function OrderForm() {
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
 
-  async function placeOrder() {
+  // Grand total the customer pays (and must transfer for QR) — items + shipping.
+  const orderTotal = totalPrice + shippingFee(totalQty);
+
+  /** Validate the shared required fields. Returns true when the form is valid. */
+  function validate(): boolean {
     if (!name.trim() || !phone.trim() || !address.trim()) {
       toast.error("Thiếu thông tin", "Vui lòng nhập Họ tên, Số điện thoại và Địa chỉ.");
-      return;
+      return false;
     }
     if (!PHONE_RE.test(phone.trim().replace(/[\s.]/g, ""))) {
       toast.error("Số điện thoại không hợp lệ", "Vui lòng nhập số di động Việt Nam gồm 10 chữ số, bắt đầu bằng 0.");
-      return;
+      return false;
     }
     if (items.length === 0) {
       toast.error("Giỏ hàng đang trống");
-      return;
+      return false;
     }
+    return true;
+  }
+
+  /**
+   * Post the order to the API. For QR orders `proof` is the receipt data URL.
+   * Throws on failure so the QR modal can keep itself open; the COD path catches
+   * it via its own try/catch below.
+   */
+  async function submitOrder(proof?: string) {
     const payload: OrderInput = {
       items: items.map((i) => ({
         name: i.name,
@@ -54,22 +70,33 @@ export function OrderForm() {
       ward: "",
       note: note.trim(),
       paymentMethod: payment,
+      ...(proof ? { paymentProof: proof } : {}),
     };
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      throw new Error(data.error ?? "Không thể tạo đơn hàng");
+    }
+    const data = (await res.json()) as { order: { _id: string } };
+    toast.success("Đặt hàng thành công!", `Mã đơn: ${data.order._id}`);
+    clear();
+    setName(""); setPhone(""); setAddress(""); setNote("");
+  }
+
+  /** Primary "Thanh Toán" button: COD posts directly, QR opens the QR modal. */
+  async function placeOrder() {
+    if (!validate()) return;
+    if (payment === "qr") {
+      setQrOpen(true);
+      return;
+    }
     setSubmitting(true);
     try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Không thể tạo đơn hàng");
-      }
-      const data = (await res.json()) as { order: { _id: string } };
-      toast.success("Đặt hàng thành công!", `Mã đơn: ${data.order._id}`);
-      clear();
-      setName(""); setPhone(""); setAddress(""); setNote("");
+      await submitOrder();
     } catch (err) {
       toast.error("Không thể tạo đơn hàng", err instanceof Error ? err.message : undefined);
     } finally {
@@ -193,6 +220,19 @@ export function OrderForm() {
       >
         {submitting ? "Đang xử lý..." : "Thanh Toán"}
       </button>
+
+      <QrPaymentModal
+        open={qrOpen}
+        onOpenChange={setQrOpen}
+        amount={orderTotal}
+        transferNote={phone.trim() || name.trim()}
+        onConfirmed={async (proof) => {
+          // Place the QR order; on success close the modal. Errors propagate so
+          // the modal stays open and shows its own retry toast.
+          await submitOrder(proof);
+          setQrOpen(false);
+        }}
+      />
     </div>
   );
 }

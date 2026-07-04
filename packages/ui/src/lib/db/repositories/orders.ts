@@ -37,6 +37,7 @@ export async function createOrder(input: OrderInput): Promise<OrderDoc> {
     ward: input.ward,
     note: input.note,
     paymentMethod: input.paymentMethod,
+    ...(input.paymentProof ? { paymentProof: input.paymentProof } : {}),
     status: "pending" as const,
     createdAt: new Date().toISOString(),
   };

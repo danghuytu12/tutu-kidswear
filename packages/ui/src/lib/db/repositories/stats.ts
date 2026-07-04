@@ -142,6 +142,48 @@ function buildTopProducts(orders: OrderDoc[], limit = 6): TopProduct[] {
     .slice(0, limit);
 }
 
+/** Orders + revenue for a date range, used by the scheduled Telegram reports. */
+export interface SalesSummary {
+  /** Inclusive YYYY-MM-DD window this summary covers. */
+  from: string;
+  to: string;
+  /** Non-cancelled orders placed within the window. */
+  orderCount: number;
+  /** Revenue (VND) from those non-cancelled orders. */
+  revenue: number;
+  /** Products sold in the window, by units, highest first. */
+  products: TopProduct[];
+}
+
+/**
+ * Orders + revenue for the inclusive [from, to] day window. Cancelled orders are
+ * excluded from both figures. `from`/`to` are YYYY-MM-DD keys interpreted in the
+ * server's local clock (same as the dashboard).
+ */
+export async function getSalesSummary(
+  from: string,
+  to: string,
+): Promise<SalesSummary> {
+  const range =
+    isDateKey(from) && isDateKey(to) && from <= to
+      ? { from, to }
+      : { from: to, to: from };
+  const orders = await listOrders();
+  const inRange = orders.filter((o) => {
+    if (o.status === "cancelled") return false;
+    const key = dayKey(new Date(o.createdAt));
+    return key >= range.from && key <= range.to;
+  });
+  return {
+    from: range.from,
+    to: range.to,
+    orderCount: inRange.length,
+    revenue: inRange.reduce((sum, o) => sum + o.total, 0),
+    // No cap — reports list every product sold in the window.
+    products: buildTopProducts(inRange, Infinity),
+  };
+}
+
 /**
  * Gather all figures + analytics for the overview dashboard, scoped to a date
  * range. `from`/`to` are inclusive YYYY-MM-DD keys; omit them for the default
