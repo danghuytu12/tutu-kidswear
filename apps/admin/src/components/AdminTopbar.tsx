@@ -1,5 +1,6 @@
 import { Search } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export function AdminTopbar() {
   return (
@@ -16,6 +17,7 @@ export function AdminTopbar() {
       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#b08560] text-[13px] font-bold text-white">
         CO
       </div>
+      <LogoutButton />
     </header>
   );
 }
