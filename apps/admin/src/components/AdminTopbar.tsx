@@ -1,4 +1,5 @@
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export function AdminTopbar() {
   return (
@@ -11,14 +12,7 @@ export function AdminTopbar() {
           className="w-full max-w-xs bg-transparent text-[14px] text-black outline-none placeholder:text-black/40"
         />
       </div>
-      <button
-        type="button"
-        aria-label="Thông báo"
-        className="relative rounded-full p-2 text-black/60 hover:bg-[#f2ece3]"
-      >
-        <Bell className="h-5 w-5" />
-        <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#dc2525]" />
-      </button>
+      <NotificationBell />
       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#b08560] text-[13px] font-bold text-white">
         CO
       </div>
