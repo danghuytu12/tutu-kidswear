@@ -8,6 +8,7 @@ import {
 } from "@repo/ui/components/ui/dialog";
 import { useToast } from "@repo/ui/components/ui/toast";
 import { formatVnd } from "@repo/ui/lib/cart";
+import { MotionButton } from "@repo/ui/components/motion";
 import { compressToDataUrl } from "@/lib/image";
 import { readAmountsFromImage, matchesAmount } from "@/lib/ocr";
 
@@ -144,14 +145,14 @@ export function QrPaymentModal({
           ) : null}
         </div>
 
-        <button
+        <MotionButton
           type="button"
           onClick={confirm}
           disabled={checking}
           className="w-full cursor-pointer rounded-full bg-[#b08560] py-3 text-[16px] font-semibold text-white hover:bg-[#8a6647] disabled:opacity-60"
         >
           {checking ? "Đang kiểm tra..." : "Xác nhận đã chuyển khoản"}
-        </button>
+        </MotionButton>
       </DialogContent>
     </Dialog>
   );

@@ -99,6 +99,8 @@ export interface OrderDoc {
   paymentMethod: "cod" | "qr";
   /** Base64 (data URL) of the bank-transfer receipt — QR orders only. */
   paymentProof?: string;
+  /** Whether an admin has read this order's notification. Absent/false = unread. */
+  read?: boolean;
   status: (typeof ORDER_STATUSES)[number];
   createdAt: string;
 }

@@ -6,6 +6,7 @@ import { useCart } from "@repo/ui/components/cart/CartContext";
 import { useToast } from "@repo/ui/components/ui/toast";
 import { shippingFee } from "@repo/ui/lib/cart";
 import type { OrderInput } from "@repo/ui/lib/db/types";
+import { MotionButton } from "@repo/ui/components/motion";
 import { QrPaymentModal } from "./QrPaymentModal";
 
 const inputClass =
@@ -212,14 +213,14 @@ export function OrderForm() {
         </label>
       </div>
 
-      <button
+      <MotionButton
         type="button"
         onClick={placeOrder}
         disabled={submitting}
         className="mt-5 w-full cursor-pointer rounded-full bg-[#b08560] py-3.5 text-[16px] font-semibold text-white hover:bg-[#8a6647] disabled:opacity-60"
       >
         {submitting ? "Đang xử lý..." : "Thanh Toán"}
-      </button>
+      </MotionButton>
 
       <QrPaymentModal
         open={qrOpen}

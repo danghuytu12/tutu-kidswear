@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import { listOrders } from "@repo/ui/lib/db/repositories/orders";
+import { listOrders, searchOrders } from "@repo/ui/lib/db/repositories/orders";
 import type { OrderDoc } from "@repo/ui/lib/db/types";
 import {
   Table,
@@ -11,6 +11,8 @@ import {
 } from "@repo/ui/components/ui/table";
 import { OrderStatusSelect } from "@/components/OrderStatusSelect";
 import { DeleteOrderButton } from "@/components/DeleteOrderButton";
+import { PaymentProofCell } from "@/components/PaymentProofCell";
+import { OrderSearch } from "@/components/OrderSearch";
 
 // Read live from the shared MongoDB; never cache at build time.
 export const runtime = "nodejs";
@@ -33,21 +35,32 @@ function formatVnd(price: number): string {
   return `${price.toLocaleString("vi-VN")} ₫`;
 }
 
+/** Full order code from the ObjectId, prefixed with "#". */
+function orderCode(id: string): string {
+  return `#${id}`;
+}
+
 function fullAddress(o: OrderDoc): string {
   return [o.address, o.ward, o.district, o.province].filter(Boolean).join(", ");
 }
 
-async function loadOrders(): Promise<OrderDoc[]> {
+async function loadOrders(query: string): Promise<OrderDoc[]> {
   try {
-    return await listOrders();
+    return query ? await searchOrders(query) : await listOrders();
   } catch {
     // DB unreachable / not configured — render an empty table rather than break.
     return [];
   }
 }
 
-export default async function OrdersPage() {
-  const orders = await loadOrders();
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  const query = q?.trim() ?? "";
+  const orders = await loadOrders(query);
 
   return (
     <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
@@ -70,12 +83,13 @@ export default async function OrdersPage() {
               Quản lý và theo dõi đơn hàng của khách.
             </p>
           </div>
+          <OrderSearch />
         </div>
 
         <Table>
           <TableHeader>
             <TableRow className="border-[#E4E7EC] hover:bg-transparent">
-              {["Khách hàng", "Sản phẩm", "Địa chỉ", "Thanh toán", "Trạng thái", "Tổng tiền", "Ngày đặt", "Thao tác"].map(
+              {["Mã đơn", "Khách hàng", "Sản phẩm", "Địa chỉ", "Thanh toán", "Biên lai", "Trạng thái", "Tổng tiền", "Ngày đặt", "Thao tác"].map(
                 (label) => (
                   <TableHead key={label} className="text-[#344054]">
                     {label}
@@ -87,13 +101,22 @@ export default async function OrdersPage() {
           <TableBody>
             {orders.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={8} className="py-16 text-center">
-                  <p className="text-sm text-[#667085]">Chưa có đơn hàng nào.</p>
+                <TableCell colSpan={10} className="py-16 text-center">
+                  <p className="text-sm text-[#667085]">
+                    {query
+                      ? `Không tìm thấy đơn hàng nào khớp "${query}".`
+                      : "Chưa có đơn hàng nào."}
+                  </p>
                 </TableCell>
               </TableRow>
             ) : null}
             {orders.map((o) => (
               <TableRow key={o._id} className="border-[#E4E7EC] hover:bg-gray-50">
+                <TableCell className="whitespace-nowrap">
+                  <span className="font-mono text-sm font-medium text-[#344054]">
+                    {orderCode(o._id)}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-[#344054]">
@@ -109,7 +132,7 @@ export default async function OrdersPage() {
                     ) : null}
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="min-w-[260px]">
                   <ul className="space-y-2">
                     {o.items.map((it, i) => (
                       <li
@@ -148,6 +171,9 @@ export default async function OrdersPage() {
                   <span className="text-sm text-[#667085]">
                     {o.paymentMethod === "qr" ? "Chuyển khoản QR" : "COD"}
                   </span>
+                </TableCell>
+                <TableCell>
+                  <PaymentProofCell proof={o.paymentProof} />
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
                   <OrderStatusSelect id={o._id} status={o.status} />

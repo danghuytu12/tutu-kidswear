@@ -1,5 +1,6 @@
 import type { Product } from "@repo/ui/lib/types";
 import { ProductCard } from "@repo/ui/components/ProductCard";
+import { StaggerGrid, StaggerItem } from "@repo/ui/components/motion";
 
 interface ProductCarouselProps {
   title?: string;
@@ -43,16 +44,16 @@ export function ProductCarousel({
         </div>
       )}
 
-      <div className="no-scrollbar flex snap-x gap-4 overflow-x-auto pb-2">
+      <StaggerGrid className="no-scrollbar flex snap-x gap-4 overflow-x-auto pb-2">
         {products.map((p) => (
-          <div
+          <StaggerItem
             key={p.href + p.name}
             className="w-[calc(50%-8px)] shrink-0 snap-start sm:w-[calc(33.333%-11px)] lg:w-[calc(25%-12px)]"
           >
             <ProductCard product={p} hoverAdd={hoverAdd} />
-          </div>
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerGrid>
 
       {moreLabel && (
         <div className="mt-6 flex justify-center">

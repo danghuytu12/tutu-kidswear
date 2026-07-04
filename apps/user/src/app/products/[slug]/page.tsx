@@ -3,6 +3,7 @@ import { SiteHeader } from "@repo/ui/components/SiteHeader";
 import { SiteFooter } from "@repo/ui/components/SiteFooter";
 import { FloatingWidgets } from "@repo/ui/components/FloatingWidgets";
 import { ProductCarousel } from "@repo/ui/components/ProductCarousel";
+import { Reveal } from "@repo/ui/components/motion";
 import { Breadcrumb } from "@/components/pdp/Breadcrumb";
 import {
   ProductDetail,
@@ -133,8 +134,12 @@ export default async function ProductPage({ params }: Params) {
       <SiteHeader />
       <Breadcrumb items={breadcrumb} />
       <ProductDetail data={data} />
-      <ProductDescription html={data?.description} />
-      <ProductCarousel title="GỢI Ý SẢN PHẨM" products={similar} moreLabel="" />
+      <Reveal>
+        <ProductDescription html={data?.description} />
+      </Reveal>
+      <Reveal>
+        <ProductCarousel title="GỢI Ý SẢN PHẨM" products={similar} moreLabel="" />
+      </Reveal>
       {/* <ProductReviews /> */}
       {/* <SimilarProducts /> */}
       <SiteFooter />
