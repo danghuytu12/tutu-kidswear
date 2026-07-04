@@ -47,16 +47,16 @@ export interface CustomerWithPurchases {
 
 /**
  * Build the customer list from orders — the real source of "who bought what".
- * Customers are keyed by phone number (the storefront's identity field);
- * cancelled orders are excluded. Products are summed per customer across all
- * their orders and sorted by quantity. Customers are returned most-recent-order
- * first.
+ * A customer is identified by phone number AND name together: orders collapse
+ * into one row only when both match (case/space-insensitively). Cancelled orders
+ * are excluded. Products are summed per customer across all their orders and
+ * sorted by quantity. Customers are returned most-recent-order first.
  */
 export async function getCustomersWithPurchases(): Promise<
   CustomerWithPurchases[]
 > {
   const orders = await listOrders();
-  const byPhone = new Map<
+  const byCustomer = new Map<
     string,
     {
       name: string;
@@ -70,12 +70,17 @@ export async function getCustomersWithPurchases(): Promise<
 
   for (const o of orders) {
     if (o.status === "cancelled") continue;
-    const key = o.customerPhone?.trim() || o.customerName?.trim() || "unknown";
+    const phone = o.customerPhone?.trim() ?? "";
+    const name = o.customerName?.trim() ?? "";
+    // Identity = phone + name together: only orders sharing BOTH the same phone
+    // AND the same name collapse into one customer. Normalised (lowercased) so
+    // trivial case/spacing differences still match.
+    const key = `${phone.toLowerCase()}|${name.toLowerCase()}` || "unknown";
     const entry =
-      byPhone.get(key) ??
+      byCustomer.get(key) ??
       {
-        name: o.customerName,
-        phone: o.customerPhone,
+        name,
+        phone,
         orderCount: 0,
         totalSpent: 0,
         products: new Map<string, number>(),
@@ -84,18 +89,16 @@ export async function getCustomersWithPurchases(): Promise<
     entry.orderCount += 1;
     entry.totalSpent += o.total;
     if (o.createdAt > entry.lastOrderAt) entry.lastOrderAt = o.createdAt;
-    // Keep the most recent name seen (in case it changed between orders).
-    if (o.createdAt >= entry.lastOrderAt) entry.name = o.customerName;
     for (const item of o.items) {
       entry.products.set(
         item.name,
         (entry.products.get(item.name) ?? 0) + item.qty,
       );
     }
-    byPhone.set(key, entry);
+    byCustomer.set(key, entry);
   }
 
-  return [...byPhone.values()]
+  return [...byCustomer.values()]
     .map((e) => {
       const products = [...e.products.entries()]
         .map(([name, qty]) => ({ name, qty }))

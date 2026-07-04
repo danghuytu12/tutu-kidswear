@@ -96,7 +96,7 @@ export default async function CustomersPage() {
             ) : null}
             {customers.map((c) => (
               <TableRow
-                key={c.phone || c.name}
+                key={`${c.phone}|${c.name}`}
                 className="border-[#E4E7EC] hover:bg-gray-50"
               >
                 <TableCell>
