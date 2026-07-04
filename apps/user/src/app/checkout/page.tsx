@@ -6,10 +6,17 @@ import { ProductGrid } from "@repo/ui/components/ProductGrid";
 import { CheckoutLayout } from "@/components/checkout/CheckoutLayout";
 import { suggestedProducts } from "@repo/ui/lib/products";
 import { getCatalog, slice } from "@/lib/catalog";
+import type { Metadata } from "next";
 
 // Suggested products come from the shared DB at request time.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Transactional page — keep it out of the search index.
+export const metadata: Metadata = {
+  title: "Thanh toán",
+  robots: { index: false, follow: true },
+};
 
 export default async function CheckoutPage() {
   const catalog = await getCatalog();

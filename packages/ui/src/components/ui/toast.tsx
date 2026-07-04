@@ -30,7 +30,7 @@ function ToastList() {
         key={toast.id}
         toast={toast}
         className={cn(
-          "absolute right-0 top-0 left-auto z-[120] w-[calc(100vw-2rem)] max-w-sm",
+          "absolute right-0 top-0 left-auto z-[300] w-[calc(100vw-2rem)] max-w-sm",
           "rounded-xl border border-border bg-background p-4 shadow-lg",
           "transition-all duration-200 [transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-index)*0.85rem))_scale(calc(1-(var(--toast-index)*0.05)))]",
           "data-[expanded]:[transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-offset-y)+(var(--toast-index)*1rem)))]",
@@ -60,7 +60,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <Toast.Provider>
       {children}
       <Toast.Portal>
-        <Toast.Viewport className="fixed right-4 top-4 z-[120] flex w-[calc(100vw-2rem)] max-w-sm sm:right-6 sm:top-6">
+        <Toast.Viewport className="fixed right-4 top-4 z-[300] flex w-[calc(100vw-2rem)] max-w-sm sm:right-6 sm:top-6">
           <ToastList />
         </Toast.Viewport>
       </Toast.Portal>

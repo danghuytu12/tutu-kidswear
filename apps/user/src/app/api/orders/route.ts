@@ -20,6 +20,13 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    // QR orders must carry a bank-transfer receipt image.
+    if (body.paymentMethod === "qr" && !body.paymentProof) {
+      return NextResponse.json(
+        { error: "Thiếu ảnh biên lai chuyển khoản" },
+        { status: 400 },
+      );
+    }
     // 1. Save to Mongo first — this is the admin feed.
     const order = await createOrder(body);
     // 2. Notify Telegram (best-effort; never blocks or fails the response).

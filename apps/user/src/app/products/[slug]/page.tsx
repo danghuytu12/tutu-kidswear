@@ -13,12 +13,62 @@ import { ProductReviews } from "@/components/pdp/ProductReviews";
 import { SimilarProducts } from "@/components/pdp/SimilarProducts";
 import { pdpProduct, teeProducts } from "@repo/ui/lib/products";
 import { getProductDocByHref, getCatalog, slice } from "@/lib/catalog";
+import { JsonLd } from "@repo/ui/components/JsonLd";
+import {
+  SITE,
+  productJsonLd,
+  breadcrumbJsonLd,
+  plainTextExcerpt,
+} from "@repo/ui/lib/seo";
+import type { Metadata } from "next";
 
 // Look up the product by slug in the shared DB at request time.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ slug: string }> };
+
+/** Image gallery for a product doc: the images array, or [img], or []. */
+function galleryOf(doc: { images?: string[]; img?: string }): string[] {
+  if (doc.images && doc.images.length > 0) return doc.images;
+  return doc.img ? [doc.img] : [];
+}
+
+/** Product meta/JSON-LD description from editor HTML (falls back to SITE copy). */
+function productExcerpt(html: string | undefined, max = 160): string {
+  return plainTextExcerpt(html, max, SITE.description);
+}
+
+export async function generateMetadata({
+  params,
+}: Params): Promise<Metadata> {
+  const { slug } = await params;
+  const doc = await getProductDocByHref(`/products/${slug}`);
+  if (!doc) {
+    return { title: "Sản phẩm" };
+  }
+  const path = `/products/${slug}`;
+  const description = productExcerpt(doc.description);
+  const images = galleryOf(doc);
+  return {
+    title: doc.name,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      title: `${doc.name} | ${SITE.name}`,
+      description,
+      url: path,
+      type: "website",
+      images: images.length > 0 ? images : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${doc.name} | ${SITE.name}`,
+      description,
+      images: images.length > 0 ? images : undefined,
+    },
+  };
+}
 
 export default async function ProductPage({ params }: Params) {
   const { slug } = await params;
@@ -34,12 +84,7 @@ export default async function ProductPage({ params }: Params) {
         href: doc.href,
         // DB stores disc like "(-15%)" — strip to "15%" for the badge.
         discPct: doc.disc?.replace(/[^\d%]/g, "") || undefined,
-        gallery:
-          doc.images && doc.images.length > 0
-            ? doc.images
-            : doc.img
-              ? [doc.img]
-              : undefined,
+        gallery: galleryOf(doc).length > 0 ? galleryOf(doc) : undefined,
         // Distinct sizes/colours from variants (preserve order, drop blanks).
         sizes: doc.variants?.length
           ? [...new Set(doc.variants.map((v) => v.size).filter(Boolean))]
@@ -62,6 +107,28 @@ export default async function ProductPage({ params }: Params) {
 
   return (
     <>
+      {doc ? (
+        <>
+          <JsonLd
+            data={productJsonLd({
+              name: doc.name,
+              // Plain-text excerpt — JSON-LD must not carry raw HTML markup.
+              description: productExcerpt(doc.description, 300),
+              images: galleryOf(doc),
+              href: doc.href,
+              price: doc.price,
+              inStock: doc.inStock,
+              category: doc.category,
+            })}
+          />
+          <JsonLd
+            data={breadcrumbJsonLd([
+              { name: "Trang chủ", href: "/" },
+              { name: doc.name, href: doc.href },
+            ])}
+          />
+        </>
+      ) : null}
       <AnnouncementBar />
       <SiteHeader />
       <Breadcrumb items={breadcrumb} />
