@@ -44,22 +44,26 @@ export function HeroCarousel() {
         ))}
       </div>
 
-      <MotionButton
-        type="button"
-        onClick={prev}
-        aria-label="Previous slide"
-        className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/60 text-black transition-colors hover:bg-white/90"
-      >
-        <ChevronLeftIcon className="h-5 w-5" />
-      </MotionButton>
-      <MotionButton
-        type="button"
-        onClick={next}
-        aria-label="Next slide"
-        className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/60 text-black transition-colors hover:bg-white/90"
-      >
-        <ChevronRightIcon className="h-5 w-5" />
-      </MotionButton>
+      <div className="absolute left-3 top-1/2 -translate-y-1/2">
+        <MotionButton
+          type="button"
+          onClick={prev}
+          aria-label="Previous slide"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 text-black transition-colors hover:bg-white/90"
+        >
+          <ChevronLeftIcon className="h-5 w-5" />
+        </MotionButton>
+      </div>
+      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+        <MotionButton
+          type="button"
+          onClick={next}
+          aria-label="Next slide"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 text-black transition-colors hover:bg-white/90"
+        >
+          <ChevronRightIcon className="h-5 w-5" />
+        </MotionButton>
+      </div>
 
       <div className="absolute inset-x-0 bottom-4 flex justify-center gap-2">
         {SLIDES.map((src, i) => (

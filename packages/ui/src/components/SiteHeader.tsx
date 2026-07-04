@@ -34,37 +34,38 @@ function MegaMenuItem({ menu }: { menu: MegaMenu }) {
       {/* Mega panel */}
       <AnimatePresence>
         {open ? (
-          <motion.div
-            className="absolute left-1/2 top-full z-50 -translate-x-1/2"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-          >
-            <div className="mt-0 min-w-[520px] rounded-lg border border-black/5 bg-white p-6 shadow-xl">
-              <div className="grid grid-cols-2 gap-x-10 gap-y-6 sm:grid-cols-3">
-                {menu.groups.map((g) => (
-                  <div key={g.title}>
-                    <h3 className="font-display mb-2 text-[18px] font-bold text-black">
-                      {g.title}
-                    </h3>
-                    <ul className="space-y-1.5">
-                      {g.links.map((l) => (
-                        <li key={l.href}>
-                          <a
-                            href={l.href}
-                            className="text-[16px] text-black hover:text-[#b08560]"
-                          >
-                            {l.label}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+          <div className="absolute left-1/2 top-full z-50 -translate-x-1/2">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+            >
+              <div className="mt-0 min-w-[520px] rounded-lg border border-black/5 bg-white p-6 shadow-xl">
+                <div className="grid grid-cols-2 gap-x-10 gap-y-6 sm:grid-cols-3">
+                  {menu.groups.map((g) => (
+                    <div key={g.title}>
+                      <h3 className="font-display mb-2 text-[18px] font-bold text-black">
+                        {g.title}
+                      </h3>
+                      <ul className="space-y-1.5">
+                        {g.links.map((l) => (
+                          <li key={l.href}>
+                            <a
+                              href={l.href}
+                              className="text-[16px] text-black hover:text-[#b08560]"
+                            >
+                              {l.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         ) : null}
       </AnimatePresence>
     </li>
