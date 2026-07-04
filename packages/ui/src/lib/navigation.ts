@@ -107,11 +107,14 @@ export const bstMenu: MegaMenu = {
   ],
 };
 
-export const megaMenus: MegaMenu[] = [beTraiMenu, beGaiMenu];
+// Bé Trai / Bé Gái are plain links (no dropdown, no chevron).
+export const megaMenus: MegaMenu[] = [];
 
 // Simple (no-dropdown) nav links, in bar order.
 export const simpleNavLinks: NavLink[] = [
   { label: "Trang Chủ", href: "/" },
+  { label: beTraiMenu.label, href: beTraiMenu.href },
+  { label: beGaiMenu.label, href: beGaiMenu.href },
 ];
 
 // Category quick-links row on the homepage (circular product tiles).
