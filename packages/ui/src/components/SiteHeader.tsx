@@ -95,7 +95,7 @@ export function SiteHeader() {
           <img
             src="/images/cocandy/logo.png"
             alt="Tutu Kidswear"
-            className="h-16 w-auto"
+            className="animate-bob h-16 w-auto"
           />
         </Link>
 

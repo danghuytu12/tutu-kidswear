@@ -213,3 +213,37 @@
 .rich-text table { border-collapse: collapse; width: 100%; margin: 0.75rem 0; }
 .rich-text th, .rich-text td { border: 1px solid #e1e0d9; padding: 0.5rem 0.75rem; text-align: left; }
 .rich-text hr { border: 0; border-top: 1px solid #e1e0d9; margin: 1rem 0; }
+
+/* ===== Continuous decorative animations ===== */
+
+/* Floating chat icons: gentle "breathing" scale plus a periodic wiggle. */
+@keyframes tutu-pulse-wiggle {
+  0%, 70%, 100% { transform: scale(1) rotate(0deg); }
+  78% { transform: scale(1.08) rotate(-7deg); }
+  86% { transform: scale(1.08) rotate(7deg); }
+  94% { transform: scale(1.04) rotate(-4deg); }
+}
+.animate-pulse-wiggle {
+  animation: tutu-pulse-wiggle 2.6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Logo: soft continuous bob (up/down) with a hint of scale "breathing". */
+@keyframes tutu-bob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.03); }
+}
+.animate-bob {
+  animation: tutu-bob 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Marquee: continuously scroll a duplicated text track leftward. */
+@keyframes tutu-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: tutu-marquee 18s linear infinite;
+  will-change: transform;
+}

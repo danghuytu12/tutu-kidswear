@@ -22,7 +22,7 @@ export function SiteFooter() {
             <img
               src="/images/cocandy/logo.png"
               alt="Tutu Kidswear"
-              className="mb-3 h-16 w-auto"
+              className="animate-bob mb-3 h-16 w-auto"
             />
             <h3 className="font-display text-[18px] font-bold text-black">
               {footerContact.blurbTitle}
