@@ -22,6 +22,7 @@ import {
   PhoneIcon,
   DeliveryIcon,
 } from "@repo/ui/components/icons";
+import { MotionButton } from "@repo/ui/components/motion";
 
 // Optional overrides from the DB product (by slug). Rich fields not stored in
 // the DB (reviews) still come from the static pdpProduct.
@@ -216,42 +217,42 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
         {/* Qty stepper */}
         <div className="mt-6">
           <div className="inline-flex items-center rounded-full border border-black/20">
-            <button
+            <MotionButton
               type="button"
               aria-label="Giảm số lượng"
               onClick={() => setQty((q) => Math.max(1, q - 1))}
               className="flex h-10 w-10 items-center justify-center text-black"
             >
               <MinusIcon className="h-4 w-4" />
-            </button>
+            </MotionButton>
             <span className="w-8 text-center text-[15px] text-black">{qty}</span>
-            <button
+            <MotionButton
               type="button"
               aria-label="Tăng số lượng"
               onClick={() => setQty((q) => q + 1)}
               className="flex h-10 w-10 items-center justify-center text-black"
             >
               <PlusIcon className="h-4 w-4" />
-            </button>
+            </MotionButton>
           </div>
         </div>
 
         {/* Buttons */}
         <div className="mt-6 flex gap-3">
-          <button
+          <MotionButton
             type="button"
             onClick={addToCart}
             className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5]"
           >
             Thêm vào giỏ hàng
-          </button>
-          <button
+          </MotionButton>
+          <MotionButton
             type="button"
             onClick={buyNow}
             className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5]"
           >
             Mua ngay
-          </button>
+          </MotionButton>
         </div>
 
         {/* Zalo CTA */}
