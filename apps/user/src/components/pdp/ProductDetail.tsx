@@ -61,16 +61,29 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
   const { addItem } = useCart();
   const toast = useToast();
   const href = data?.href ?? "/products/ao-coc-cotton-van-mong-nau-tay-raclan";
+  // The selected variant, captured at add-to-cart time. Empty selections
+  // (a product with no colours, or no sizes) become undefined so they don't
+  // create a spurious "" variant on the cart line.
+  const variant = () => ({
+    size: selectedSize || undefined,
+    color: selectedColor || undefined,
+  });
+  const variantLabel = () =>
+    [selectedSize, selectedColor].filter(Boolean).join(" · ");
   const addToCart = () => {
     addItem(
-      { href, name, img: gallery[0], price: parsePriceVnd(sale) },
+      { href, name, img: gallery[0], price: parsePriceVnd(sale), ...variant() },
       qty,
     );
-    toast.success("Đã thêm vào giỏ hàng", `${name} × ${qty}`);
+    const label = variantLabel();
+    toast.success(
+      "Đã thêm vào giỏ hàng",
+      `${name} × ${qty}${label ? ` (${label})` : ""}`,
+    );
   };
   const buyNow = () => {
     addItem(
-      { href, name, img: gallery[0], price: parsePriceVnd(sale) },
+      { href, name, img: gallery[0], price: parsePriceVnd(sale), ...variant() },
       qty,
     );
     router.push("/checkout");

@@ -38,6 +38,10 @@ export interface ProductDoc extends Product {
   buyPrice?: number;
   /** Product-wide discount percentage 0–100 (phần trăm khuyến mại). */
   discountPct?: number;
+  /** Flagged as a "new arrival" (sản phẩm mới) in admin. Absent/false = not new. */
+  isNew?: boolean;
+  /** Flagged as a "best seller" (sản phẩm bán chạy) in admin. Absent/false = not a best seller. */
+  isBestSeller?: boolean;
   /** Rich-text (HTML) product description authored in the admin editor. */
   description?: string;
   /** Optional URL of a size-chart image shown on the product page. */
@@ -64,6 +68,10 @@ export interface OrderItem {
   img?: string;
   /** Storefront href of the product, captured at order time. Optional for older orders. */
   href?: string;
+  /** Selected size variant, captured at order time. Absent for sizeless products / older orders. */
+  size?: string;
+  /** Selected colour variant, captured at order time. Absent for colourless products / older orders. */
+  color?: string;
 }
 
 /** All valid order statuses, in lifecycle order. Source of truth for UI + validation.

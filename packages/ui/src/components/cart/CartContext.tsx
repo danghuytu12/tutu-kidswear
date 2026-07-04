@@ -8,15 +8,17 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { CartItem } from "../../lib/cart";
+import { cartLineKey, type CartItem } from "../../lib/cart";
 
 interface CartApi {
   items: CartItem[];
   totalQty: number;
   totalPrice: number;
   addItem: (item: Omit<CartItem, "qty">, qty?: number) => void;
-  removeItem: (href: string) => void;
-  setQty: (href: string, qty: number) => void;
+  /** Remove a line by its cart-line key (see `cartLineKey`). */
+  removeItem: (lineKey: string) => void;
+  /** Set a line's quantity by its cart-line key (see `cartLineKey`). */
+  setQty: (lineKey: string, qty: number) => void;
   clear: () => void;
 }
 
@@ -87,21 +89,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
       totalPrice: items.reduce((n, i) => n + i.price * i.qty, 0),
       addItem: (item, qty = 1) =>
         setItems((cur) => {
-          const found = cur.find((i) => i.href === item.href);
+          const key = cartLineKey(item);
+          const found = cur.find((i) => cartLineKey(i) === key);
           if (found) {
             return cur.map((i) =>
-              i.href === item.href ? { ...i, qty: i.qty + qty } : i,
+              cartLineKey(i) === key ? { ...i, qty: i.qty + qty } : i,
             );
           }
           return [...cur, { ...item, qty }];
         }),
-      removeItem: (href) =>
-        setItems((cur) => cur.filter((i) => i.href !== href)),
-      setQty: (href, qty) =>
+      removeItem: (lineKey) =>
+        setItems((cur) => cur.filter((i) => cartLineKey(i) !== lineKey)),
+      setQty: (lineKey, qty) =>
         setItems((cur) =>
           qty <= 0
-            ? cur.filter((i) => i.href !== href)
-            : cur.map((i) => (i.href === href ? { ...i, qty } : i)),
+            ? cur.filter((i) => cartLineKey(i) !== lineKey)
+            : cur.map((i) => (cartLineKey(i) === lineKey ? { ...i, qty } : i)),
         ),
       clear: () => setItems([]),
     };

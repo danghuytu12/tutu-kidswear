@@ -6,7 +6,8 @@ import {
   toStorefrontProduct,
 } from "@repo/ui/lib/db/repositories/products";
 import type { ProductDoc } from "@repo/ui/lib/db/types";
-import type { Product } from "@repo/ui/lib/types";
+import type { Product, MegaMenu } from "@repo/ui/lib/types";
+import { beTraiMenu, beGaiMenu } from "@repo/ui/lib/navigation";
 
 // Server-side catalog access for the storefront. Reads the shared DB (products
 // created in admin). When the DB is empty or unreachable, callers fall back to
@@ -17,6 +18,89 @@ export async function getCatalog(): Promise<Product[]> {
   try {
     const docs = await listProducts();
     return docs.map(toStorefrontProduct);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The admin `category` value a product stores. Matches the CATEGORIES constant
+ * in the admin product form.
+ */
+type AdminCategory = "Bé Trai" | "Bé Gái";
+
+/**
+ * Map every category slug (the `/categories/<slug>` page) to its top-level admin
+ * category. Built from the nav menus: the parent slug (`be-trai`) plus every
+ * sub-category link under it (`ao-coc-tay-1`, …) all resolve to "Bé Trai";
+ * likewise for "Bé Gái". Slugs not present here (e.g. `bst`, `outlet`) have no
+ * mapping and show the full catalog.
+ */
+function buildSlugCategoryMap(): Map<string, AdminCategory> {
+  const map = new Map<string, AdminCategory>();
+  const addMenu = (menu: MegaMenu, category: AdminCategory) => {
+    const slugOf = (href: string) => href.replace(/^\/categories\//, "");
+    map.set(slugOf(menu.href), category);
+    for (const group of menu.groups) {
+      for (const link of group.links) {
+        map.set(slugOf(link.href), category);
+      }
+    }
+  };
+  addMenu(beTraiMenu, "Bé Trai");
+  addMenu(beGaiMenu, "Bé Gái");
+  return map;
+}
+
+const SLUG_CATEGORY = buildSlugCategoryMap();
+
+/** The admin category a category-page slug belongs to, or null if unmapped. */
+export function categoryForSlug(slug: string): AdminCategory | null {
+  return SLUG_CATEGORY.get(slug) ?? null;
+}
+
+/**
+ * DB products for a category-page slug, as storefront Product[]. When the slug
+ * maps to an admin category ("Bé Trai"/"Bé Gái") the catalog is filtered to that
+ * category; unmapped slugs return the full catalog. Empty array if none / on
+ * error, so callers can fall back to a static list.
+ */
+export async function getCatalogByCategory(slug: string): Promise<Product[]> {
+  try {
+    const docs = await listProducts();
+    const category = categoryForSlug(slug);
+    const filtered = category
+      ? docs.filter((d) => d.category === category)
+      : docs;
+    return filtered.map(toStorefrontProduct);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * DB products flagged as "sản phẩm mới" (isNew), as storefront Product[],
+ * newest first (listProducts already sorts by createdAt desc). Empty array if
+ * none / on error, so callers can fall back to a static list.
+ */
+export async function getNewProducts(): Promise<Product[]> {
+  try {
+    const docs = await listProducts();
+    return docs.filter((d) => d.isNew).map(toStorefrontProduct);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * DB products flagged as "sản phẩm bán chạy" (isBestSeller), as storefront
+ * Product[]. Empty array if none / on error, so callers can fall back to a
+ * static list.
+ */
+export async function getBestSellerProducts(): Promise<Product[]> {
+  try {
+    const docs = await listProducts();
+    return docs.filter((d) => d.isBestSeller).map(toStorefrontProduct);
   } catch {
     return [];
   }

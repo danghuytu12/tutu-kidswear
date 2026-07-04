@@ -4,10 +4,7 @@ import { SiteFooter } from "@repo/ui/components/SiteFooter";
 import { FloatingWidgets } from "@repo/ui/components/FloatingWidgets";
 import { Breadcrumb } from "@/components/category/Breadcrumb";
 import { CategoryLayout } from "@/components/category/CategoryLayout";
-import {
-  listProducts,
-  toStorefrontProduct,
-} from "@repo/ui/lib/db/repositories/products";
+import { getCatalogByCategory } from "@/lib/catalog";
 import { saleHeThuProducts } from "@repo/ui/lib/products";
 import type { Product } from "@repo/ui/lib/types";
 import { SITE } from "@repo/ui/lib/seo";
@@ -54,19 +51,17 @@ export async function generateMetadata({
   };
 }
 
-async function loadProducts(): Promise<Product[]> {
-  try {
-    const docs = await listProducts();
-    if (docs.length === 0) return saleHeThuProducts;
-    return docs.map(toStorefrontProduct);
-  } catch {
-    // DB unreachable / not configured — fall back to the static catalog.
-    return saleHeThuProducts;
-  }
+async function loadProducts(slug: string): Promise<Product[]> {
+  // DB products for this category ("Bé Trai"/"Bé Gái"); empty on error or when
+  // the category has no products yet — fall back to the static catalog so the
+  // page never renders blank.
+  const products = await getCatalogByCategory(slug);
+  return products.length > 0 ? products : saleHeThuProducts;
 }
 
-export default async function CategoryPage() {
-  const products = await loadProducts();
+export default async function CategoryPage({ params }: Params) {
+  const { slug } = await params;
+  const products = await loadProducts(slug);
 
   return (
     <>

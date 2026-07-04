@@ -35,7 +35,11 @@ async function sendTelegramMessage(text: string): Promise<void> {
 
 function buildMessage(order: OrderDoc): string {
   const lines = order.items
-    .map((i) => `• ${i.name} ×${i.qty} = ${formatVnd(i.price * i.qty)}`)
+    .map((i) => {
+      const variant = [i.size, i.color].filter(Boolean).join(" · ");
+      const name = variant ? `${i.name} (${variant})` : i.name;
+      return `• ${name} ×${i.qty} = ${formatVnd(i.price * i.qty)}`;
+    })
     .join("\n");
   const address = [order.address, order.ward, order.district, order.province]
     .filter(Boolean)

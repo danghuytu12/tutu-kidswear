@@ -152,6 +152,11 @@ export default async function OrdersPage({
                         <span className="text-sm text-[#667085]">
                           {it.name}{" "}
                           <span className="text-[#98A2B3]">×{it.qty}</span>
+                          {[it.size, it.color].some(Boolean) ? (
+                            <span className="ml-1 rounded bg-[#F2F4F7] px-1.5 py-0.5 text-xs text-[#475467]">
+                              {[it.size, it.color].filter(Boolean).join(" · ")}
+                            </span>
+                          ) : null}
                         </span>
                       </li>
                     ))}
