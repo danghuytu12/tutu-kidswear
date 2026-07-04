@@ -15,9 +15,9 @@ function formatVnd(n: number): string {
   return `${n.toLocaleString("vi-VN")} ₫`;
 }
 
-/** Short order code from the ObjectId: last 8 chars, uppercased (e.g. "#84035766"). */
+/** Full order code from the ObjectId, prefixed with "#". */
 function orderCode(id: string): string {
-  return `#${id.slice(-8).toUpperCase()}`;
+  return `#${id}`;
 }
 
 /** Vietnamese relative time: "vừa xong" / "N phút trước" / "N giờ trước" / "N ngày trước". */

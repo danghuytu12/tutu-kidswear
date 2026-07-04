@@ -34,9 +34,9 @@ function formatVnd(price: number): string {
   return `${price.toLocaleString("vi-VN")} ₫`;
 }
 
-/** Short order code from the ObjectId: last 8 chars, uppercased (e.g. "#84035766"). */
+/** Full order code from the ObjectId, prefixed with "#". */
 function orderCode(id: string): string {
-  return `#${id.slice(-8).toUpperCase()}`;
+  return `#${id}`;
 }
 
 function fullAddress(o: OrderDoc): string {
