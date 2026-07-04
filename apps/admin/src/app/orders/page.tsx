@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import { listOrders } from "@repo/ui/lib/db/repositories/orders";
+import { listOrders, searchOrders } from "@repo/ui/lib/db/repositories/orders";
 import type { OrderDoc } from "@repo/ui/lib/db/types";
 import {
   Table,
@@ -12,6 +12,7 @@ import {
 import { OrderStatusSelect } from "@/components/OrderStatusSelect";
 import { DeleteOrderButton } from "@/components/DeleteOrderButton";
 import { PaymentProofCell } from "@/components/PaymentProofCell";
+import { OrderSearch } from "@/components/OrderSearch";
 
 // Read live from the shared MongoDB; never cache at build time.
 export const runtime = "nodejs";
@@ -43,17 +44,23 @@ function fullAddress(o: OrderDoc): string {
   return [o.address, o.ward, o.district, o.province].filter(Boolean).join(", ");
 }
 
-async function loadOrders(): Promise<OrderDoc[]> {
+async function loadOrders(query: string): Promise<OrderDoc[]> {
   try {
-    return await listOrders();
+    return query ? await searchOrders(query) : await listOrders();
   } catch {
     // DB unreachable / not configured — render an empty table rather than break.
     return [];
   }
 }
 
-export default async function OrdersPage() {
-  const orders = await loadOrders();
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  const query = q?.trim() ?? "";
+  const orders = await loadOrders(query);
 
   return (
     <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
@@ -76,6 +83,7 @@ export default async function OrdersPage() {
               Quản lý và theo dõi đơn hàng của khách.
             </p>
           </div>
+          <OrderSearch />
         </div>
 
         <Table>
@@ -94,7 +102,11 @@ export default async function OrdersPage() {
             {orders.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={10} className="py-16 text-center">
-                  <p className="text-sm text-[#667085]">Chưa có đơn hàng nào.</p>
+                  <p className="text-sm text-[#667085]">
+                    {query
+                      ? `Không tìm thấy đơn hàng nào khớp "${query}".`
+                      : "Chưa có đơn hàng nào."}
+                  </p>
                 </TableCell>
               </TableRow>
             ) : null}
