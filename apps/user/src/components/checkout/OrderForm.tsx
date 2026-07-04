@@ -62,6 +62,8 @@ export function OrderForm() {
         qty: i.qty,
         img: i.img,
         href: i.href,
+        ...(i.size ? { size: i.size } : {}),
+        ...(i.color ? { color: i.color } : {}),
       })),
       customerName: name.trim(),
       customerPhone: phone.trim(),

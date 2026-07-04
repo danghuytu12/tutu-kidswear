@@ -2,7 +2,7 @@
 
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@repo/ui/components/cart/CartContext";
-import { formatVnd, shippingFee } from "@repo/ui/lib/cart";
+import { cartLineKey, formatVnd, shippingFee } from "@repo/ui/lib/cart";
 
 export function CartSummary() {
   const { items, totalPrice, totalQty, setQty, removeItem } = useCart();
@@ -33,58 +33,65 @@ export function CartSummary() {
         </div>
       ) : (
         <ul className="divide-y">
-          {items.map((it) => (
-            <li key={it.href} className="flex items-center gap-3 py-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={it.img}
-                alt={it.name}
-                className="h-14 w-14 shrink-0 rounded-md object-cover"
-              />
-              <div className="flex-1">
-                <p className="text-[14px] text-black">{it.name}</p>
-                <p className="mt-0.5 text-[12px] text-[#999]">
-                  {formatVnd(it.price)}
-                </p>
-              </div>
+          {items.map((it) => {
+            const key = cartLineKey(it);
+            const variant = [it.size, it.color].filter(Boolean).join(" · ");
+            return (
+              <li key={key} className="flex items-center gap-3 py-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={it.img}
+                  alt={it.name}
+                  className="h-14 w-14 shrink-0 rounded-md object-cover"
+                />
+                <div className="flex-1">
+                  <p className="text-[14px] text-black">{it.name}</p>
+                  {variant ? (
+                    <p className="mt-0.5 text-[12px] text-black/70">{variant}</p>
+                  ) : null}
+                  <p className="mt-0.5 text-[12px] text-[#999]">
+                    {formatVnd(it.price)}
+                  </p>
+                </div>
 
-              {/* Quantity stepper */}
-              <div className="inline-flex shrink-0 items-center rounded-full border border-black/20">
-                <button
-                  type="button"
-                  aria-label="Giảm số lượng"
-                  onClick={() => setQty(it.href, it.qty - 1)}
-                  className="flex h-8 w-8 items-center justify-center text-black"
-                >
-                  <Minus className="h-3.5 w-3.5" />
-                </button>
-                <span className="w-7 text-center text-[14px] text-black">
-                  {it.qty}
+                {/* Quantity stepper */}
+                <div className="inline-flex shrink-0 items-center rounded-full border border-black/20">
+                  <button
+                    type="button"
+                    aria-label="Giảm số lượng"
+                    onClick={() => setQty(key, it.qty - 1)}
+                    className="flex h-8 w-8 items-center justify-center text-black"
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="w-7 text-center text-[14px] text-black">
+                    {it.qty}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Tăng số lượng"
+                    onClick={() => setQty(key, it.qty + 1)}
+                    className="flex h-8 w-8 items-center justify-center text-black"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <span className="w-24 text-right text-[14px] font-semibold text-[#c2864e]">
+                  {formatVnd(it.price * it.qty)}
                 </span>
+
                 <button
                   type="button"
-                  aria-label="Tăng số lượng"
-                  onClick={() => setQty(it.href, it.qty + 1)}
-                  className="flex h-8 w-8 items-center justify-center text-black"
+                  aria-label="Xóa sản phẩm"
+                  onClick={() => removeItem(key)}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#999] transition hover:bg-[#fef3f2] hover:text-[#b42318]"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
-              </div>
-
-              <span className="w-24 text-right text-[14px] font-semibold text-[#c2864e]">
-                {formatVnd(it.price * it.qty)}
-              </span>
-
-              <button
-                type="button"
-                aria-label="Xóa sản phẩm"
-                onClick={() => removeItem(it.href)}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#999] transition hover:bg-[#fef3f2] hover:text-[#b42318]"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
 

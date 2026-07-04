@@ -8,6 +8,19 @@ export interface CartItem {
   /** Numeric VND price. */
   price: number;
   qty: number;
+  /** Selected size variant (e.g. "90"). Absent for products without sizes. */
+  size?: string;
+  /** Selected colour variant. Absent for products without colours. */
+  color?: string;
+}
+
+/**
+ * Stable identity for a cart line: same product AND same size AND same colour.
+ * Two different variants of one product are distinct lines, so this is the key
+ * used for merging, updating quantity, and removal.
+ */
+export function cartLineKey(item: Pick<CartItem, "href" | "size" | "color">): string {
+  return `${item.href}|${item.size ?? ""}|${item.color ?? ""}`;
 }
 
 /** Parse a formatted VND price like "199.000 ₫" into 199000. */
