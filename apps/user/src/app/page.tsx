@@ -45,7 +45,7 @@ export default async function Home() {
           href="/categories/bst-do-boi"
         />
       </Reveal>
-      <Reveal>
+      {/* <Reveal>
         <ProductCarousel
           title="BST đồ bơi"
           products={slice(catalog, 16, 8, swimProducts)}
@@ -83,10 +83,10 @@ export default async function Home() {
           topRightHref="/categories/bst-mellow-candy"
           moreHref="/categories/bst-mellow-candy"
         />
-      </Reveal>
-      <Reveal>
+      </Reveal> */}
+      {/* <Reveal>
         <RecentlyViewed />
-      </Reveal>
+      </Reveal> */}
       <SiteFooter />
       <FloatingWidgets />
     </>
