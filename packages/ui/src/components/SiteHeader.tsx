@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { megaMenus, simpleNavLinks } from "@repo/ui/lib/navigation";
 import type { MegaMenu } from "@repo/ui/lib/types";
 import {
@@ -16,8 +17,13 @@ import { useCart } from "./cart/CartContext";
 const [trangChu, ...restSimple] = simpleNavLinks;
 
 function MegaMenuItem({ menu }: { menu: MegaMenu }) {
+  const [open, setOpen] = useState(false);
   return (
-    <li className="group relative flex items-center">
+    <li
+      className="group relative flex items-center"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
       <a
         href={menu.href}
         className="font-display flex items-center gap-1 py-6 text-[17px] font-bold text-[#b08560] hover:text-[#8a6647]"
@@ -26,31 +32,41 @@ function MegaMenuItem({ menu }: { menu: MegaMenu }) {
         <ChevronDownIcon className="h-4 w-4" />
       </a>
       {/* Mega panel */}
-      <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
-        <div className="mt-0 min-w-[520px] rounded-lg border border-black/5 bg-white p-6 shadow-xl">
-          <div className="grid grid-cols-2 gap-x-10 gap-y-6 sm:grid-cols-3">
-            {menu.groups.map((g) => (
-              <div key={g.title}>
-                <h3 className="font-display mb-2 text-[18px] font-bold text-black">
-                  {g.title}
-                </h3>
-                <ul className="space-y-1.5">
-                  {g.links.map((l) => (
-                    <li key={l.href}>
-                      <a
-                        href={l.href}
-                        className="text-[16px] text-black hover:text-[#b08560]"
-                      >
-                        {l.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            className="absolute left-1/2 top-full z-50 -translate-x-1/2"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+          >
+            <div className="mt-0 min-w-[520px] rounded-lg border border-black/5 bg-white p-6 shadow-xl">
+              <div className="grid grid-cols-2 gap-x-10 gap-y-6 sm:grid-cols-3">
+                {menu.groups.map((g) => (
+                  <div key={g.title}>
+                    <h3 className="font-display mb-2 text-[18px] font-bold text-black">
+                      {g.title}
+                    </h3>
+                    <ul className="space-y-1.5">
+                      {g.links.map((l) => (
+                        <li key={l.href}>
+                          <a
+                            href={l.href}
+                            className="text-[16px] text-black hover:text-[#b08560]"
+                          >
+                            {l.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </li>
   );
 }
@@ -122,79 +138,91 @@ export function SiteHeader() {
       </div>
 
       {/* Mobile drawer */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-[110] lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setDrawerOpen(false)}
-          />
-          <div className="absolute left-0 top-0 h-full w-[300px] max-w-[85%] overflow-y-auto bg-white p-5 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/cocandy/logo.png"
-                alt="Tutu Kidswear"
-                className="h-12 w-auto"
-              />
-              <button
-                type="button"
-                aria-label="Đóng"
-                onClick={() => setDrawerOpen(false)}
-              >
-                <CloseIcon className="h-6 w-6 text-black" />
-              </button>
-            </div>
-            <nav className="space-y-4">
-              <a
-                href={trangChu.href}
-                className="font-display block text-[16px] font-bold text-[#b08560]"
-              >
-                {trangChu.label}
-              </a>
-              {megaMenus.map((m) => (
-                <div key={m.label}>
-                  <a
-                    href={m.href}
-                    className="font-display block text-[16px] font-bold text-[#b08560]"
-                  >
-                    {m.label}
-                  </a>
-                  <div className="mt-2 space-y-3 pl-3">
-                    {m.groups.map((g) => (
-                      <div key={g.title}>
-                        <p className="font-display text-[14px] font-bold text-black">
-                          {g.title}
-                        </p>
-                        <ul className="mt-1 space-y-1 pl-2">
-                          {g.links.map((l) => (
-                            <li key={l.href}>
-                              <a
-                                href={l.href}
-                                className="text-[14px] text-black/80"
-                              >
-                                {l.label}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              {restSimple.map((l) => (
+      <AnimatePresence>
+        {drawerOpen ? (
+          <div className="fixed inset-0 z-[110] lg:hidden">
+            <motion.div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setDrawerOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            />
+            <motion.div
+              className="absolute left-0 top-0 h-full w-[300px] max-w-[85%] overflow-y-auto bg-white p-5 shadow-xl"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/cocandy/logo.png"
+                  alt="Tutu Kidswear"
+                  className="h-12 w-auto"
+                />
+                <button
+                  type="button"
+                  aria-label="Đóng"
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  <CloseIcon className="h-6 w-6 text-black" />
+                </button>
+              </div>
+              <nav className="space-y-4">
                 <a
-                  key={l.href}
-                  href={l.href}
+                  href={trangChu.href}
                   className="font-display block text-[16px] font-bold text-[#b08560]"
                 >
-                  {l.label}
+                  {trangChu.label}
                 </a>
-              ))}
-            </nav>
+                {megaMenus.map((m) => (
+                  <div key={m.label}>
+                    <a
+                      href={m.href}
+                      className="font-display block text-[16px] font-bold text-[#b08560]"
+                    >
+                      {m.label}
+                    </a>
+                    <div className="mt-2 space-y-3 pl-3">
+                      {m.groups.map((g) => (
+                        <div key={g.title}>
+                          <p className="font-display text-[14px] font-bold text-black">
+                            {g.title}
+                          </p>
+                          <ul className="mt-1 space-y-1 pl-2">
+                            {g.links.map((l) => (
+                              <li key={l.href}>
+                                <a
+                                  href={l.href}
+                                  className="text-[14px] text-black/80"
+                                >
+                                  {l.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {restSimple.map((l) => (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    className="font-display block text-[16px] font-bold text-[#b08560]"
+                  >
+                    {l.label}
+                  </a>
+                ))}
+              </nav>
+            </motion.div>
           </div>
-        </div>
-      )}
+        ) : null}
+      </AnimatePresence>
     </header>
   );
 }

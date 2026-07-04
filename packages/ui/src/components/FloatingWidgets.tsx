@@ -7,6 +7,7 @@ import {
   MessengerColorIcon,
   ChevronUpIcon,
 } from "@repo/ui/components/icons";
+import { HoverLift } from "@repo/ui/components/motion";
 
 export function FloatingWidgets() {
   const [showTop, setShowTop] = useState(false);
@@ -22,31 +23,33 @@ export function FloatingWidgets() {
     <>
       {/* Social chat widgets, stacked bottom-right */}
       <div className="fixed bottom-5 right-5 z-[90] flex flex-col items-center gap-3">
-        <a
-          href="#"
-          aria-label="Nhắn tin Messenger"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block h-14 w-14 transition-transform hover:scale-105"
-        >
-          <MessengerColorIcon className="h-14 w-14 drop-shadow-lg" />
-        </a>
-        <a
-          href="#"
-          aria-label="Theo dõi Instagram"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block h-14 w-14 transition-transform hover:scale-105"
-        >
-          <InstagramColorIcon className="h-14 w-14 drop-shadow-lg" />
-        </a>
-        <a
-          href="#"
-          aria-label="Chat Zalo"
-          className="block h-14 w-14 transition-transform hover:scale-105"
-        >
-          <ZaloIcon className="h-14 w-14 drop-shadow-lg" />
-        </a>
+        <HoverLift>
+          <a
+            href="#"
+            aria-label="Nhắn tin Messenger"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block h-14 w-14"
+          >
+            <MessengerColorIcon className="h-14 w-14 drop-shadow-lg" />
+          </a>
+        </HoverLift>
+        <HoverLift>
+          <a
+            href="#"
+            aria-label="Theo dõi Instagram"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block h-14 w-14"
+          >
+            <InstagramColorIcon className="h-14 w-14 drop-shadow-lg" />
+          </a>
+        </HoverLift>
+        <HoverLift>
+          <a href="#" aria-label="Chat Zalo" className="block h-14 w-14">
+            <ZaloIcon className="h-14 w-14 drop-shadow-lg" />
+          </a>
+        </HoverLift>
       </div>
 
       {/* Scroll to top bottom-left */}
