@@ -10,6 +10,9 @@ const DEV_SECRET_FALLBACK = "dev-insecure-admin-secret-change-me";
 function secret(): string {
   const s = process.env.ADMIN_SESSION_SECRET;
   if (!s) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("ADMIN_SESSION_SECRET must be set in production");
+    }
     console.warn(
       "[auth] ADMIN_SESSION_SECRET is not set — using an insecure dev default. Set it in production.",
     );
