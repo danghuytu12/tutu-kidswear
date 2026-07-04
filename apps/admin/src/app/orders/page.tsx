@@ -11,6 +11,7 @@ import {
 } from "@repo/ui/components/ui/table";
 import { OrderStatusSelect } from "@/components/OrderStatusSelect";
 import { DeleteOrderButton } from "@/components/DeleteOrderButton";
+import { PaymentProofCell } from "@/components/PaymentProofCell";
 
 // Read live from the shared MongoDB; never cache at build time.
 export const runtime = "nodejs";
@@ -75,7 +76,7 @@ export default async function OrdersPage() {
         <Table>
           <TableHeader>
             <TableRow className="border-[#E4E7EC] hover:bg-transparent">
-              {["Khách hàng", "Sản phẩm", "Địa chỉ", "Thanh toán", "Trạng thái", "Tổng tiền", "Ngày đặt", "Thao tác"].map(
+              {["Khách hàng", "Sản phẩm", "Địa chỉ", "Thanh toán", "Biên lai", "Trạng thái", "Tổng tiền", "Ngày đặt", "Thao tác"].map(
                 (label) => (
                   <TableHead key={label} className="text-[#344054]">
                     {label}
@@ -87,7 +88,7 @@ export default async function OrdersPage() {
           <TableBody>
             {orders.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={8} className="py-16 text-center">
+                <TableCell colSpan={9} className="py-16 text-center">
                   <p className="text-sm text-[#667085]">Chưa có đơn hàng nào.</p>
                 </TableCell>
               </TableRow>
@@ -109,7 +110,7 @@ export default async function OrdersPage() {
                     ) : null}
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="min-w-[260px]">
                   <ul className="space-y-2">
                     {o.items.map((it, i) => (
                       <li
@@ -148,6 +149,9 @@ export default async function OrdersPage() {
                   <span className="text-sm text-[#667085]">
                     {o.paymentMethod === "qr" ? "Chuyển khoản QR" : "COD"}
                   </span>
+                </TableCell>
+                <TableCell>
+                  <PaymentProofCell proof={o.paymentProof} />
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
                   <OrderStatusSelect id={o._id} status={o.status} />

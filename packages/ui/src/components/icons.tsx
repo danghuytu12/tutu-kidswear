@@ -96,3 +96,47 @@ export function ZaloIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+// Instagram floating widget mark — filled circle with the brand gradient.
+export function InstagramColorIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} aria-hidden>
+      <defs>
+        <radialGradient id="ig-grad" cx="30%" cy="107%" r="150%">
+          <stop offset="0%" stopColor="#fdf497" />
+          <stop offset="5%" stopColor="#fdf497" />
+          <stop offset="45%" stopColor="#fd5949" />
+          <stop offset="60%" stopColor="#d6249f" />
+          <stop offset="90%" stopColor="#285AEB" />
+        </radialGradient>
+      </defs>
+      <circle cx="24" cy="24" r="24" fill="url(#ig-grad)" />
+      <g fill="none" stroke="#fff" strokeWidth="2.4">
+        <rect x="14" y="14" width="20" height="20" rx="6" />
+        <circle cx="24" cy="24" r="5" />
+      </g>
+      <circle cx="30.5" cy="17.5" r="1.6" fill="#fff" />
+    </svg>
+  );
+}
+
+// Messenger floating widget mark — filled circle with the speech-bubble bolt.
+export function MessengerColorIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} aria-hidden>
+      <defs>
+        <radialGradient id="msgr-grad" cx="19%" cy="99%" r="109%">
+          <stop offset="0%" stopColor="#0099FF" />
+          <stop offset="60%" stopColor="#A033FF" />
+          <stop offset="90%" stopColor="#FF5280" />
+          <stop offset="100%" stopColor="#FF7061" />
+        </radialGradient>
+      </defs>
+      <circle cx="24" cy="24" r="24" fill="url(#msgr-grad)" />
+      <path
+        fill="#fff"
+        d="M24 12c-6.9 0-12 5-12 11.7 0 3.5 1.4 6.6 3.8 8.6.2.2.3.4.3.7l.1 2.3c0 .7.8 1.2 1.4.9l2.6-1.1c.2-.1.4-.1.7 0 1.1.3 2.2.5 3.4.5 6.9 0 12-5 12-11.7S30.9 12 24 12Zm7.2 9-3.5 5.6c-.6.9-1.8 1.1-2.6.5l-2.8-2.1c-.3-.2-.6-.2-.9 0l-3.8 2.9c-.5.4-1.2-.2-.9-.7l3.5-5.6c.6-.9 1.8-1.1 2.6-.5l2.8 2.1c.3.2.6.2.9 0l3.8-2.9c.5-.4 1.2.2.9.7Z"
+      />
+    </svg>
+  );
+}

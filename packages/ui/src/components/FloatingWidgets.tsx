@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ZaloIcon, ChevronUpIcon } from "@repo/ui/components/icons";
+import {
+  ZaloIcon,
+  InstagramColorIcon,
+  MessengerColorIcon,
+  ChevronUpIcon,
+} from "@repo/ui/components/icons";
 
 export function FloatingWidgets() {
   const [showTop, setShowTop] = useState(false);
@@ -15,14 +20,34 @@ export function FloatingWidgets() {
 
   return (
     <>
-      {/* Zalo widget bottom-right */}
-      <a
-        href="#"
-        aria-label="Chat Zalo"
-        className="fixed bottom-5 right-5 z-[90] block h-14 w-14"
-      >
-        <ZaloIcon className="h-14 w-14 drop-shadow-lg" />
-      </a>
+      {/* Social chat widgets, stacked bottom-right */}
+      <div className="fixed bottom-5 right-5 z-[90] flex flex-col items-center gap-3">
+        <a
+          href="#"
+          aria-label="Nhắn tin Messenger"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block h-14 w-14 transition-transform hover:scale-105"
+        >
+          <MessengerColorIcon className="h-14 w-14 drop-shadow-lg" />
+        </a>
+        <a
+          href="#"
+          aria-label="Theo dõi Instagram"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block h-14 w-14 transition-transform hover:scale-105"
+        >
+          <InstagramColorIcon className="h-14 w-14 drop-shadow-lg" />
+        </a>
+        <a
+          href="#"
+          aria-label="Chat Zalo"
+          className="block h-14 w-14 transition-transform hover:scale-105"
+        >
+          <ZaloIcon className="h-14 w-14 drop-shadow-lg" />
+        </a>
+      </div>
 
       {/* Scroll to top bottom-left */}
       {showTop && (
