@@ -16,7 +16,12 @@ import {
   saleHeThuProducts,
   mellowProducts,
 } from "@repo/ui/lib/products";
-import { getCatalog, slice } from "@/lib/catalog";
+import {
+  getCatalog,
+  getNewProducts,
+  getBestSellerProducts,
+  slice,
+} from "@/lib/catalog";
 import { Reveal } from "@repo/ui/components/motion";
 
 // Read the shared catalog (products created in admin) at request time.
@@ -26,6 +31,12 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   // One DB read; different slices feed each section. Empty DB → static arrays.
   const catalog = await getCatalog();
+  // "Sản phẩm mới" / "bán chạy" tabs are filtered by the admin flags; fall back
+  // to the static curated lists when nothing is flagged yet.
+  const [flaggedNew, flaggedBest] = await Promise.all([
+    getNewProducts(),
+    getBestSellerProducts(),
+  ]);
 
   return (
     <>
@@ -35,8 +46,8 @@ export default async function Home() {
       {/* <CategoryQuickLinks /> */}
       <Reveal>
         <ProductTabsSection
-          newList={slice(catalog, 0, 8, newProducts)}
-          bestList={slice(catalog, 8, 8, bestsellerProducts)}
+          newList={flaggedNew.length > 0 ? flaggedNew : newProducts}
+          bestList={flaggedBest.length > 0 ? flaggedBest : bestsellerProducts}
         />
       </Reveal>
       <Reveal>

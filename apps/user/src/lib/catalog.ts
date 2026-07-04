@@ -79,6 +79,34 @@ export async function getCatalogByCategory(slug: string): Promise<Product[]> {
 }
 
 /**
+ * DB products flagged as "sản phẩm mới" (isNew), as storefront Product[],
+ * newest first (listProducts already sorts by createdAt desc). Empty array if
+ * none / on error, so callers can fall back to a static list.
+ */
+export async function getNewProducts(): Promise<Product[]> {
+  try {
+    const docs = await listProducts();
+    return docs.filter((d) => d.isNew).map(toStorefrontProduct);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * DB products flagged as "sản phẩm bán chạy" (isBestSeller), as storefront
+ * Product[]. Empty array if none / on error, so callers can fall back to a
+ * static list.
+ */
+export async function getBestSellerProducts(): Promise<Product[]> {
+  try {
+    const docs = await listProducts();
+    return docs.filter((d) => d.isBestSeller).map(toStorefrontProduct);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Pick `count` products from the catalog starting at `offset` (wraps around),
  * so different homepage sections show different slices instead of identical
  * lists. Falls back to `fallback` when the catalog is empty.
