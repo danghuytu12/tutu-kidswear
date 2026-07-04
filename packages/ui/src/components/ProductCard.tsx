@@ -4,6 +4,7 @@ import type { Product } from "@repo/ui/lib/types";
 import { useCart } from "./cart/CartContext";
 import { useToast } from "./ui/toast";
 import { parsePriceVnd } from "../lib/cart";
+import { MotionButton } from "@repo/ui/components/motion";
 
 const DEFAULT_SIZES = ["73", "80", "90", "100", "110", "120", "130", "140", "150"];
 
@@ -49,20 +50,20 @@ export function ProductCard({
             const el = e.currentTarget;
             if (el.src !== PLACEHOLDER) el.src = PLACEHOLDER;
           }}
-          className="aspect-square w-full rounded-md object-cover"
+          className="aspect-square w-full rounded-md object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {hoverAdd && (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 bg-white/90 px-2 py-2 opacity-0 backdrop-blur-sm transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
-            <button
+            <MotionButton
               type="button"
               onClick={(e) => {
                 e.preventDefault();
                 add();
               }}
-              className="w-full text-center text-[14px] font-bold text-black"
+              className="w-full cursor-pointer text-center text-[14px] font-bold text-black"
             >
               Thêm nhanh vào giỏ +
-            </button>
+            </MotionButton>
             {/* <div className="mt-1 flex flex-wrap justify-center gap-x-2 gap-y-0.5">
               {sizes.map((s) => (
                 <button
