@@ -101,7 +101,7 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
           <img
             src={gallery[active]}
             alt={name}
-            className="aspect-square w-full rounded-lg object-cover"
+            className="aspect-square w-full rounded-lg"
           />
           <button
             type="button"
@@ -133,7 +133,7 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
               <img
                 src={src}
                 alt={`${name} ${i + 1}`}
-                className={`h-16 w-16 cursor-pointer rounded object-cover ${
+                className={`h-16 w-16 cursor-pointer rounded ${
                   i === active ? "ring-2 ring-[#b08560]" : ""
                 }`}
               />
