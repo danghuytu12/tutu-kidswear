@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/ui/table";
+import { Pagination, PAGE_SIZE, parsePage } from "@/components/Pagination";
 
 // Read live from the shared MongoDB; never cache at build time.
 export const runtime = "nodejs";
@@ -40,8 +41,20 @@ async function loadCustomers(): Promise<CustomerWithPurchases[]> {
   }
 }
 
-export default async function CustomersPage() {
+export default async function CustomersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
   const customers = await loadCustomers();
+
+  const totalPages = Math.max(1, Math.ceil(customers.length / PAGE_SIZE));
+  const page = parsePage(pageParam, totalPages);
+  const pageCustomers = customers.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
 
   return (
     <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
@@ -94,7 +107,7 @@ export default async function CustomersPage() {
                 </TableCell>
               </TableRow>
             ) : null}
-            {customers.map((c) => (
+            {pageCustomers.map((c) => (
               <TableRow
                 key={`${c.phone}|${c.name}`}
                 className="border-[#E4E7EC] hover:bg-gray-50"
@@ -145,13 +158,12 @@ export default async function CustomersPage() {
           </TableBody>
         </Table>
 
-        <div className="border-t border-[#E4E7EC] px-5 py-4">
-          <p className="text-sm text-[#667085]">
-            {customers.length === 0
-              ? "Showing 0 of 0"
-              : `Showing 1 to ${customers.length} of ${customers.length}`}
-          </p>
-        </div>
+        <Pagination
+          pathname="/customers"
+          searchParams={{}}
+          page={page}
+          totalItems={customers.length}
+        />
       </div>
     </div>
   );

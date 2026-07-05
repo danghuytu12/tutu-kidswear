@@ -3,6 +3,7 @@ import { listOrders, searchOrders } from "@repo/ui/lib/db/repositories/orders";
 import type { OrderDoc } from "@repo/ui/lib/db/types";
 import { OrderSearch } from "@/components/OrderSearch";
 import { OrdersTable } from "@/components/OrdersTable";
+import { Pagination, PAGE_SIZE, parsePage } from "@/components/Pagination";
 
 // Read live from the shared MongoDB; never cache at build time.
 export const runtime = "nodejs";
@@ -20,11 +21,15 @@ async function loadOrders(query: string): Promise<OrderDoc[]> {
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, page: pageParam } = await searchParams;
   const query = q?.trim() ?? "";
   const orders = await loadOrders(query);
+
+  const totalPages = Math.max(1, Math.ceil(orders.length / PAGE_SIZE));
+  const page = parsePage(pageParam, totalPages);
+  const pageOrders = orders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
@@ -50,15 +55,14 @@ export default async function OrdersPage({
           <OrderSearch />
         </div>
 
-        <OrdersTable orders={orders} query={query} />
+        <OrdersTable orders={pageOrders} query={query} />
 
-        <div className="border-t border-[#E4E7EC] px-5 py-4">
-          <p className="text-sm text-[#667085]">
-            {orders.length === 0
-              ? "Showing 0 of 0"
-              : `Showing 1 to ${orders.length} of ${orders.length}`}
-          </p>
-        </div>
+        <Pagination
+          pathname="/orders"
+          searchParams={{ q: query || undefined }}
+          page={page}
+          totalItems={orders.length}
+        />
       </div>
     </div>
   );

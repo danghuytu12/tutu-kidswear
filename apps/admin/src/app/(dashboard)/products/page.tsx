@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
   Download,
@@ -12,6 +11,7 @@ import {
 import { listProducts } from "@repo/ui/lib/db/repositories/products";
 import type { ProductDoc } from "@repo/ui/lib/db/types";
 import { DeleteProductButton } from "@/components/DeleteProductButton";
+import { Pagination, PAGE_SIZE, parsePage } from "@/components/Pagination";
 
 // Read live from the shared MongoDB; never cache at build time.
 export const runtime = "nodejs";
@@ -139,8 +139,17 @@ async function loadProducts(): Promise<ProductRow[]> {
   }
 }
 
-export default async function ProductsPage() {
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
   const products = await loadProducts();
+
+  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
+  const page = parsePage(pageParam, totalPages);
+  const pageProducts = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
@@ -235,7 +244,7 @@ export default async function ProductsPage() {
                   </td>
                 </tr>
               ) : null}
-              {products.map((p) => (
+              {pageProducts.map((p) => (
                 <tr
                   key={`${p.name}-${p.date}`}
                   className="border-b border-[#E4E7EC] transition hover:bg-gray-50"
@@ -296,45 +305,12 @@ export default async function ProductsPage() {
           </table>
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-3 border-t border-[#E4E7EC] px-5 py-4 sm:flex-row">
-          <p className="text-sm text-[#667085]">
-            {products.length === 0
-              ? "Showing 0 of 0"
-              : `Showing 1 to ${products.length} of ${products.length}`}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="flex items-center rounded-lg border border-[#D0D5DD] bg-white p-2 text-[#344054] shadow-sm transition hover:bg-gray-50"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#465FFF] text-sm font-medium text-white"
-            >
-              1
-            </button>
-            <button
-              type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium text-[#344054] transition hover:bg-[#465FFF]/10"
-            >
-              2
-            </button>
-            <button
-              type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium text-[#344054] transition hover:bg-[#465FFF]/10"
-            >
-              3
-            </button>
-            <button
-              type="button"
-              className="flex items-center rounded-lg border border-[#D0D5DD] bg-white p-2 text-[#344054] shadow-sm transition hover:bg-gray-50"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
+        <Pagination
+          pathname="/products"
+          searchParams={{}}
+          page={page}
+          totalItems={products.length}
+        />
       </div>
     </div>
   );
