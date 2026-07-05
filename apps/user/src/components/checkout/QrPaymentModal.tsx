@@ -120,7 +120,7 @@ export function QrPaymentModal({
           </div>
           <div className="mt-1 flex items-center justify-between">
             <span className="text-black/60">Nội dung chuyển khoản</span>
-            <span className="font-medium text-black">{transferNote}</span>
+            <span className="font-medium text-black">Nhập số điện thoại mua hàng</span>
           </div>
         </div>
 
