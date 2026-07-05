@@ -38,7 +38,7 @@ export function HeroCarousel() {
             <img
               src={src}
               alt={`Slide ${i + 1}`}
-              className="aspect-[2/1] max-h-[560px] w-full object-cover"
+              className="aspect-[2/1] max-h-[660px] w-full"
             />
           </a>
         ))}
