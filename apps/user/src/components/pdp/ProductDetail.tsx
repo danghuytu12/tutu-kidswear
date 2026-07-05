@@ -268,9 +268,6 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
         </div>
 
         {/* Zalo CTA */}
-        <p className="mt-4 text-[14px] text-[#a67b5b]">
-          Nhấn nút zalo để được tư vấn ngay (8:30 - 23:00) →
-        </p>
 
         {/* Delivery info */}
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
