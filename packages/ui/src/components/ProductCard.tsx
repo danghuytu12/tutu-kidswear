@@ -50,7 +50,7 @@ export function ProductCard({
             const el = e.currentTarget;
             if (el.src !== PLACEHOLDER) el.src = PLACEHOLDER;
           }}
-          className="aspect-square w-full rounded-md object-cover transition-transform duration-300 group-hover:scale-105"
+          className="aspect-square w-full rounded-md transition-transform duration-300 group-hover:scale-105"
         />
         {hoverAdd && (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 bg-white/90 px-2 py-2 opacity-0 backdrop-blur-sm transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
