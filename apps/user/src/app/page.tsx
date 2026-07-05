@@ -50,12 +50,12 @@ export default async function Home() {
           bestList={flaggedBest.length > 0 ? flaggedBest : bestsellerProducts}
         />
       </Reveal>
-      <Reveal>
+      {/* <Reveal>
         <PromoBanner
           src="/images/cocandy/banner-1.png"
           href="/categories/bst-do-boi"
         />
-      </Reveal>
+      </Reveal> */}
       {/* <Reveal>
         <ProductCarousel
           title="BST đồ bơi"

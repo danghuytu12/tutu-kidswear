@@ -24,7 +24,7 @@ export function FloatingWidgets() {
           continuously (staggered so they don't move in lockstep). */}
       <div className="fixed bottom-5 right-5 z-[90] flex flex-col items-center gap-3">
         <a
-          href="#"
+          href="https://www.facebook.com/profile.php?id=61591679398475"
           aria-label="Nhắn tin Messenger"
           target="_blank"
           rel="noopener noreferrer"
@@ -33,7 +33,7 @@ export function FloatingWidgets() {
           <MessengerColorIcon className="animate-pulse-wiggle h-14 w-14 drop-shadow-lg" />
         </a>
         <a
-          href="#"
+          href="https://www.instagram.com/tutuk.idswear/"
           aria-label="Theo dõi Instagram"
           target="_blank"
           rel="noopener noreferrer"
@@ -41,7 +41,13 @@ export function FloatingWidgets() {
         >
           <InstagramColorIcon className="animate-pulse-wiggle h-14 w-14 drop-shadow-lg [animation-delay:0.5s]" />
         </a>
-        <a href="#" aria-label="Chat Zalo" className="block h-14 w-14">
+        <a
+          href="https://zalo.me/0834494182"
+          aria-label="Chat Zalo"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block h-14 w-14"
+        >
           <ZaloIcon className="animate-pulse-wiggle h-14 w-14 drop-shadow-lg [animation-delay:1s]" />
         </a>
       </div>

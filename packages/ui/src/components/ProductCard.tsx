@@ -1,12 +1,6 @@
 "use client";
 
 import type { Product } from "@repo/ui/lib/types";
-import { useCart } from "./cart/CartContext";
-import { useToast } from "./ui/toast";
-import { parsePriceVnd } from "../lib/cart";
-import { MotionButton } from "@repo/ui/components/motion";
-
-const DEFAULT_SIZES = ["73", "80", "90", "100", "110", "120", "130", "140", "150"];
 
 // Neutral cream placeholder shown if a product photo fails to load.
 const PLACEHOLDER =
@@ -17,27 +11,17 @@ const PLACEHOLDER =
 
 interface ProductCardProps {
   product: Product;
+  /**
+   * @deprecated Kept for backward compatibility with existing callers. The
+   * quick-add-on-hover overlay was removed, so this prop no longer has any
+   * effect.
+   */
   hoverAdd?: boolean;
+  /** @deprecated No longer used (quick-add overlay removed). */
   sizes?: string[];
 }
 
-export function ProductCard({
-  product,
-  hoverAdd = true,
-  sizes = DEFAULT_SIZES,
-}: ProductCardProps) {
-  const { addItem } = useCart();
-  const toast = useToast();
-  const add = () => {
-    addItem({
-      href: product.href,
-      name: product.name,
-      img: product.img,
-      price: parsePriceVnd(product.sale),
-    });
-    toast.success("Đã thêm vào giỏ hàng", product.name);
-  };
-
+export function ProductCard({ product }: ProductCardProps) {
   return (
     <a href={product.href} className="group block">
       <div className="relative overflow-hidden rounded-md bg-white">
@@ -52,35 +36,6 @@ export function ProductCard({
           }}
           className="aspect-square w-full rounded-md transition-transform duration-300 group-hover:scale-105"
         />
-        {hoverAdd && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 bg-white/90 px-2 py-2 opacity-0 backdrop-blur-sm transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
-            <MotionButton
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                add();
-              }}
-              className="w-full cursor-pointer text-center text-[14px] font-bold text-black"
-            >
-              Thêm nhanh vào giỏ +
-            </MotionButton>
-            {/* <div className="mt-1 flex flex-wrap justify-center gap-x-2 gap-y-0.5">
-              {sizes.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    add();
-                  }}
-                  className="text-[16px] leading-tight text-black hover:text-[#c2864e]"
-                >
-                  {s}
-                </button>
-              ))}
-            </div> */}
-          </div>
-        )}
       </div>
 
       <p className="mt-2 line-clamp-2 text-[14px] leading-snug text-black">
