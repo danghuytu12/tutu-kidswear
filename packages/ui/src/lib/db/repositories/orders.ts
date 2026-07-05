@@ -105,6 +105,18 @@ export async function deleteOrder(id: string): Promise<boolean> {
   return result.deletedCount === 1;
 }
 
+/**
+ * Delete many orders by id in one call. Invalid ids are ignored. Returns the
+ * number of documents actually removed.
+ */
+export async function deleteOrders(ids: string[]): Promise<number> {
+  const objectIds = ids.filter((id) => ObjectId.isValid(id)).map((id) => new ObjectId(id));
+  if (objectIds.length === 0) return 0;
+  const col = await ordersCollection();
+  const result = await col.deleteMany({ _id: { $in: objectIds } });
+  return result.deletedCount ?? 0;
+}
+
 /** Unread orders (read !== true), newest first, capped at `limit`. */
 export async function listUnreadOrders(limit = 20): Promise<OrderDoc[]> {
   const col = await ordersCollection();
