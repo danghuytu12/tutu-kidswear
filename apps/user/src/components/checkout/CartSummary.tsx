@@ -33,11 +33,11 @@ export function CartSummary() {
         </div>
       ) : (
         <ul className="divide-y">
-          {items.map((it) => {
+          {items.map((it, index) => {
             const key = cartLineKey(it);
             const variant = [it.size, it.color].filter(Boolean).join(" · ");
             return (
-              <li key={key} className="flex items-center gap-3 py-3">
+              <li key={index} className="flex items-center gap-3 py-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={it.img}

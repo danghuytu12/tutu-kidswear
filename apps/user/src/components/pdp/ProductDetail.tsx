@@ -145,12 +145,11 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
       {/* RIGHT: info */}
       <div>
         <h1 className="text-[25px] font-bold text-black">{name}</h1>
-        <p className="mt-2 text-[14px] text-[#c4c4c4] line-through">{orig}</p>
         <div className="mt-1 flex items-center gap-3">
           <span className="text-[22px] font-bold text-black">{sale}</span>
-          <span className="rounded bg-[#dc2525] px-2 py-0.5 text-[13px] text-white">
+          {/* <span className="rounded bg-[#dc2525] px-2 py-0.5 text-[13px] text-white">
             -{discPct}
-          </span>
+          </span> */}
           {data?.sizeChartImage ? (
             <Dialog>
               <DialogTrigger className="ml-auto cursor-pointer text-[14px] text-[#a67b5b] underline">
@@ -281,11 +280,11 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
           </div>
           <div className="flex items-center gap-2 text-[14px]">
             <ReturnIcon className="h-5 w-5 text-[#b08560]" />
-            <span>Đổi trong vòng 15 ngày</span>
+            <span>Kiểm tra hàng trước khi nhận</span>
           </div>
           <div className="flex items-center gap-2 text-[14px]">
             <PhoneIcon className="h-5 w-5 text-[#b08560]" />
-            <span>Hotline 0834494182 hỗ trợ từ 8h30 - 23h mỗi ngày</span>
+            <span>Hotline 0834494182 hỗ trợ từ 8h30 - 20h mỗi ngày</span>
           </div>
           <div className="flex items-center gap-2 text-[14px]">
             <DeliveryIcon className="h-5 w-5 text-[#b08560]" />
