@@ -106,7 +106,7 @@ export function QrPaymentModal({
           <img
             src="/images/cocandy/IMG_8586.webp"
             alt="Mã QR chuyển khoản"
-            className="h-52 w-52 rounded-lg border border-black/10 object-contain"
+            className="h-72 w-72 max-w-full rounded-lg border border-black/10 object-contain"
           />
           <p className="text-center text-[14px] text-black/70">
             Quét mã QR để chuyển khoản
