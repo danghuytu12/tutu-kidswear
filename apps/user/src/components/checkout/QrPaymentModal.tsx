@@ -104,9 +104,9 @@ export function QrPaymentModal({
         <div className="flex flex-col items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/cocandy/IMG_8586.webp"
+            src="/images/cocandy/qr-payment.webp"
             alt="Mã QR chuyển khoản"
-            className="h-72 w-72 max-w-full rounded-lg border border-black/10 object-contain"
+            className="h-auto w-72 max-w-full rounded-lg border border-black/10 object-contain"
           />
           <p className="text-center text-[14px] text-black/70">
             Quét mã QR để chuyển khoản
