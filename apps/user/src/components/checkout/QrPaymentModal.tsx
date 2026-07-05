@@ -104,7 +104,7 @@ export function QrPaymentModal({
         <div className="flex flex-col items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/payment/qr-code.png"
+            src="/images/cocandy/IMG_8586.webp"
             alt="Mã QR chuyển khoản"
             className="h-52 w-52 rounded-lg border border-black/10 object-contain"
           />
