@@ -62,16 +62,18 @@ export function categoryForSlug(slug: string): AdminCategory | null {
 /**
  * DB products for a category-page slug, as storefront Product[]. When the slug
  * maps to an admin category ("Bé Trai"/"Bé Gái") the catalog is filtered to that
- * category; unmapped slugs return the full catalog. Empty array if none / on
- * error, so callers can fall back to a static list.
+ * category; unmapped slugs return the full catalog. Products not flagged in
+ * admin as "Sản phẩm mới" (isNew) or "Sản phẩm bán chạy" (isBestSeller) are
+ * excluded so they never surface in the bé trai / bé gái filters. Empty array
+ * if none / on error, so callers can fall back to a static list.
  */
 export async function getCatalogByCategory(slug: string): Promise<Product[]> {
   try {
     const docs = await listProducts();
     const category = categoryForSlug(slug);
-    const filtered = category
-      ? docs.filter((d) => d.category === category)
-      : docs;
+    const filtered = docs
+      .filter((d) => d.isNew || d.isBestSeller)
+      .filter((d) => (category ? d.category === category : true));
     return filtered.map(toStorefrontProduct);
   } catch {
     return [];
