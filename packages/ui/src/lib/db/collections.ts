@@ -17,3 +17,13 @@ export async function ordersCollection(): Promise<Collection<Document>> {
 export async function customersCollection(): Promise<Collection<Document>> {
   return (await getDb()).collection("customers");
 }
+
+/** Line-item rows imported from Shopee order exports. */
+export async function shopeeOrderRowsCollection(): Promise<Collection<Document>> {
+  return (await getDb()).collection("shopeeOrderRows");
+}
+
+/** One document per uploaded Shopee export, holding its counters. */
+export async function shopeeImportsCollection(): Promise<Collection<Document>> {
+  return (await getDb()).collection("shopeeImports");
+}

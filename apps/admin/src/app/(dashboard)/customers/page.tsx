@@ -12,6 +12,12 @@ import {
   TableRow,
 } from "@repo/ui/components/ui/table";
 import { Pagination, PAGE_SIZE, parsePage } from "@/components/Pagination";
+import {
+  CardEmpty,
+  CardField,
+  MobileCard,
+  MobileCardList,
+} from "@/components/MobileCard";
 
 // Read live from the shared MongoDB; never cache at build time.
 export const runtime = "nodejs";
@@ -68,7 +74,7 @@ export default async function CustomersPage({
       </div>
 
       <div className="overflow-hidden rounded-xl border border-[#E4E7EC] bg-white">
-        <div className="flex flex-col justify-between gap-5 border-b border-[#E4E7EC] px-5 py-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col justify-between gap-5 border-b border-[#E4E7EC] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
           <div>
             <h3 className="text-lg font-semibold text-[#1D2939]">
               Khách hàng đã mua hàng
@@ -80,83 +86,127 @@ export default async function CustomersPage({
           </div>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow className="border-[#E4E7EC] hover:bg-transparent">
-              {[
-                "Khách hàng",
-                "Sản phẩm đã mua",
-                "Tổng SL",
-                "Số đơn",
-                "Tổng chi",
-                "Mua gần nhất",
-              ].map((label) => (
-                <TableHead key={label} className="text-[#344054]">
-                  {label}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {customers.length === 0 ? (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={6} className="py-16 text-center">
-                  <p className="text-sm text-[#667085]">
-                    Chưa có khách hàng nào mua hàng.
-                  </p>
-                </TableCell>
+        <div className="hidden lg:block">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-[#E4E7EC] hover:bg-transparent">
+                {[
+                  "Khách hàng",
+                  "Sản phẩm đã mua",
+                  "Tổng SL",
+                  "Số đơn",
+                  "Tổng chi",
+                  "Mua gần nhất",
+                ].map((label) => (
+                  <TableHead key={label} className="text-[#344054]">
+                    {label}
+                  </TableHead>
+                ))}
               </TableRow>
-            ) : null}
-            {pageCustomers.map((c) => (
-              <TableRow
-                key={`${c.phone}|${c.name}`}
-                className="border-[#E4E7EC] hover:bg-gray-50"
-              >
-                <TableCell>
-                  <div className="flex flex-col">
+            </TableHeader>
+            <TableBody>
+              {customers.length === 0 ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={6} className="py-16 text-center">
+                    <p className="text-sm text-[#667085]">
+                      Chưa có khách hàng nào mua hàng.
+                    </p>
+                  </TableCell>
+                </TableRow>
+              ) : null}
+              {pageCustomers.map((c) => (
+                <TableRow
+                  key={`${c.phone}|${c.name}`}
+                  className="border-[#E4E7EC] hover:bg-gray-50"
+                >
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-[#344054]">
+                        {c.name}
+                      </span>
+                      <span className="text-xs text-[#667085]">{c.phone}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="min-w-[280px]">
+                    <ul className="space-y-1">
+                      {c.products.map((p, i) => (
+                        <li
+                          key={`${c.phone}-${i}`}
+                          className="flex items-baseline justify-between gap-3 text-sm"
+                        >
+                          <span className="text-[#667085]">{p.name}</span>
+                          <span className="shrink-0 font-medium text-[#344054]">
+                            ×{p.qty}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
                     <span className="text-sm font-medium text-[#344054]">
-                      {c.name}
+                      {c.totalItems}
                     </span>
-                    <span className="text-xs text-[#667085]">{c.phone}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="min-w-[280px]">
-                  <ul className="space-y-1">
-                    {c.products.map((p, i) => (
-                      <li
-                        key={`${c.phone}-${i}`}
-                        className="flex items-baseline justify-between gap-3 text-sm"
-                      >
-                        <span className="text-[#667085]">{p.name}</span>
-                        <span className="shrink-0 font-medium text-[#344054]">
-                          ×{p.qty}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <span className="text-sm font-medium text-[#344054]">
-                    {c.totalItems}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <span className="text-sm text-[#667085]">
+                      {c.orderCount}
+                    </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <span className="text-sm font-medium text-[#344054]">
+                      {formatVnd(c.totalSpent)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <span className="text-sm text-[#667085]">
+                      {formatDate(c.lastOrderAt)}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {customers.length === 0 ? (
+          <CardEmpty>Chưa có khách hàng nào mua hàng.</CardEmpty>
+        ) : (
+          <MobileCardList>
+            {pageCustomers.map((c) => (
+              <MobileCard key={`m-${c.phone}|${c.name}`}>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-[#1D2939]">
+                    {c.name}
                   </span>
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <span className="text-sm text-[#667085]">{c.orderCount}</span>
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <span className="text-sm font-medium text-[#344054]">
-                    {formatVnd(c.totalSpent)}
-                  </span>
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <span className="text-sm text-[#667085]">
-                    {formatDate(c.lastOrderAt)}
-                  </span>
-                </TableCell>
-              </TableRow>
+                  <span className="text-xs text-[#667085]">{c.phone}</span>
+                </div>
+
+                <ul className="space-y-1 border-y border-[#F2F4F7] py-3">
+                  {c.products.map((p, i) => (
+                    <li
+                      key={`${c.phone}-m-${i}`}
+                      className="flex items-baseline justify-between gap-3 text-sm"
+                    >
+                      <span className="text-[#667085]">{p.name}</span>
+                      <span className="shrink-0 font-medium text-[#344054]">
+                        ×{p.qty}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <CardField label="Tổng SL">{c.totalItems}</CardField>
+                <CardField label="Số đơn">{c.orderCount}</CardField>
+                <CardField label="Tổng chi">
+                  {formatVnd(c.totalSpent)}
+                </CardField>
+                <CardField label="Mua gần nhất">
+                  {formatDate(c.lastOrderAt)}
+                </CardField>
+              </MobileCard>
             ))}
-          </TableBody>
-        </Table>
+          </MobileCardList>
+        )}
 
         <Pagination
           pathname="/customers"

@@ -66,7 +66,7 @@ export function Pagination({
   const arrowDisabled = "pointer-events-none text-[#D0D5DD] opacity-60";
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 border-t border-[#E4E7EC] px-5 py-4 sm:flex-row">
+    <div className="flex flex-col items-center justify-between gap-3 border-t border-[#E4E7EC] px-4 py-4 sm:flex-row sm:px-5">
       <p className="text-sm text-[#667085]">
         {totalItems === 0
           ? "Showing 0 of 0"
@@ -85,29 +85,36 @@ export function Pagination({
             <ChevronLeft className="h-5 w-5" />
           </Link>
 
-          {pageItems(page, totalPages).map((item, i) =>
-            item === "ellipsis" ? (
-              <span
-                key={`e${i}`}
-                className="flex h-10 w-10 items-center justify-center text-sm text-[#98A2B3]"
-              >
-                …
-              </span>
-            ) : (
-              <Link
-                key={item}
-                href={hrefFor(pathname, searchParams, item)}
-                aria-current={item === page ? "page" : undefined}
-                className={
-                  item === page
-                    ? "flex h-10 w-10 items-center justify-center rounded-lg bg-[#465FFF] text-sm font-medium text-white"
-                    : "flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium text-[#344054] transition hover:bg-[#465FFF]/10"
-                }
-              >
-                {item}
-              </Link>
-            ),
-          )}
+          {/* Phones get a compact counter; the full number strip needs ~440px. */}
+          <span className="text-sm font-medium text-[#344054] sm:hidden">
+            Trang {page} / {totalPages}
+          </span>
+
+          <div className="hidden items-center gap-2 sm:flex">
+            {pageItems(page, totalPages).map((item, i) =>
+              item === "ellipsis" ? (
+                <span
+                  key={`e${i}`}
+                  className="flex h-10 w-10 items-center justify-center text-sm text-[#98A2B3]"
+                >
+                  …
+                </span>
+              ) : (
+                <Link
+                  key={item}
+                  href={hrefFor(pathname, searchParams, item)}
+                  aria-current={item === page ? "page" : undefined}
+                  className={
+                    item === page
+                      ? "flex h-10 w-10 items-center justify-center rounded-lg bg-[#465FFF] text-sm font-medium text-white"
+                      : "flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium text-[#344054] transition hover:bg-[#465FFF]/10"
+                  }
+                >
+                  {item}
+                </Link>
+              ),
+            )}
+          </div>
 
           <Link
             href={hrefFor(pathname, searchParams, page + 1)}

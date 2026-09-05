@@ -11,7 +11,9 @@
     "./lib/*": "./src/lib/*.ts",
     "./lib/db/*": "./src/lib/db/*.ts",
     "./lib/db/repositories/*": "./src/lib/db/repositories/*.ts",
-    "./lib/notify/*": "./src/lib/notify/*.ts"
+    "./lib/notify/*": "./src/lib/notify/*.ts",
+    "./lib/date/*": "./src/lib/date/*.ts",
+    "./lib/shopee/*": "./src/lib/shopee/*.ts"
   },
   "scripts": {
     "lint": "eslint src",
@@ -21,6 +23,7 @@
     "@base-ui/react": "^1.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.6.0",
     "mongodb": "^6.21.0",

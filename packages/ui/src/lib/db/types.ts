@@ -139,3 +139,69 @@ export type CustomerInput = {
   name: string;
   email: string;
 };
+
+/**
+ * One line-item row from a Shopee order export.
+ *
+ * The export is per line-item, not per order: an order with three products
+ * produces three documents sharing an `orderCode`, and every one of them
+ * repeats the order-level money fields. Revenue MUST therefore group by
+ * `orderCode` before summing `buyerPaidTotal` — see getShopeeSummary.
+ *
+ * Buyer identity (columns BB/BC/BD/BH — name, recipient, phone, address) is
+ * deliberately not mapped and not stored. This data is for revenue reporting;
+ * it has no need for personal data, so none is kept. Do not add it.
+ */
+export interface ShopeeOrderRowDoc {
+  _id: string;
+  /** Column A "Mã đơn hàng", shared across every row of one order. */
+  orderCode: string;
+  /** Column C normalised to YYYY-MM-DD in Vietnam time. The overwrite key. */
+  orderDayKey: string;
+  /** Column C exactly as the sheet had it, kept so a misread date is traceable. */
+  orderDateRaw: string;
+  /** Column D "Trạng Thái Đơn Hàng", verbatim. */
+  status: string;
+  /** Column Q "Tên sản phẩm". */
+  productName: string;
+  /** Column U "Tên phân loại hàng" — the variant label. */
+  variantName: string;
+  /** Column Z "Giá ưu đãi" — unit sell price, VND. */
+  unitPrice: number;
+  /** Column AA "Số lượng". */
+  quantity: number;
+  /**
+   * Column AT "Tổng số tiền người mua thanh toán" — ORDER-level, repeated on
+   * every row of the order. The revenue metric. Note column AC carries a
+   * near-identical header differing only in the capitalisation of "Người mua";
+   * the two are not interchangeable.
+   */
+  buyerPaidTotal: number;
+  /** Column AD "Tổng giá trị đơn hàng (VND)" — order-level, repeated. */
+  orderValue: number;
+  /** _id of the shopeeImports document this row came from. */
+  importId: string;
+  importedAt: string;
+}
+
+/**
+ * Metadata for one uploaded export. The original file is not retained — only
+ * the parsed rows — so these counters are the record of what an import did.
+ */
+export interface ShopeeImportDoc {
+  _id: string;
+  filename: string;
+  /** Inclusive day range decoded from the filename. */
+  rangeFrom: string;
+  rangeTo: string;
+  fileSize: number;
+  /** Rows stored by this import. */
+  rowCount: number;
+  /** Distinct orders among them. */
+  orderCount: number;
+  /** Rows the per-day overwrite removed before this import's rows landed. */
+  replacedRowCount: number;
+  /** Deduped buyer-paid total for this import's rows, excluding cancellations. */
+  totalRevenue: number;
+  importedAt: string;
+}
