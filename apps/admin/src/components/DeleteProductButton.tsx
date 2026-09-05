@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 // Deletes a product via the admin API and refreshes the (server-rendered) list.
 // `className` lets the mobile card render a wider, easier-to-tap variant.
@@ -16,6 +17,7 @@ export function DeleteProductButton({
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   async function onDelete() {
     if (busy) return;
@@ -23,7 +25,9 @@ export function DeleteProductButton({
     try {
       const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("delete failed");
-      router.refresh();
+      // Stays busy through the refresh: the row is still on screen until the
+      // server re-render replaces the list.
+      startTransition(() => router.refresh());
     } catch {
       setBusy(false);
     }
@@ -34,13 +38,13 @@ export function DeleteProductButton({
       type="button"
       aria-label="Delete product"
       onClick={onDelete}
-      disabled={busy}
+      disabled={busy || pending}
       className={cn(
         "inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#667085] transition hover:bg-[#FEF3F2] hover:text-[#B42318] disabled:opacity-50",
         className,
       )}
     >
-      <Trash2 className="h-4 w-4" />
+      {busy || pending ? <Spinner /> : <Trash2 className="h-4 w-4" />}
     </button>
   );
 }

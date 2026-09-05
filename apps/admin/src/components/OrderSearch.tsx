@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 /**
  * Search box for the orders table. Debounces input and reflects it in the `?q=`
@@ -14,6 +15,7 @@ export function OrderSearch() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(searchParams.get("q") ?? "");
+  const [pending, startTransition] = useTransition();
 
   // Debounce: push the query into the URL 400ms after the user stops typing.
   useEffect(() => {
@@ -27,14 +29,22 @@ export function OrderSearch() {
         params.delete("q");
       }
       const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname);
+      // Inside a transition so `pending` covers the server round-trip, not just
+      // the URL swap.
+      startTransition(() => {
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+      });
     }, 400);
     return () => clearTimeout(id);
   }, [value, searchParams, pathname, router]);
 
   return (
     <div className="flex w-full items-center gap-2 rounded-full border border-[#E4E7EC] bg-white px-4 py-2 sm:w-80">
-      <Search className="h-4 w-4 shrink-0 text-[#667085]" />
+      {pending ? (
+        <Spinner className="shrink-0 text-[#667085]" />
+      ) : (
+        <Search className="h-4 w-4 shrink-0 text-[#667085]" />
+      )}
       <input
         type="text"
         value={value}

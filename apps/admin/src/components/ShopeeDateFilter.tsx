@@ -1,7 +1,9 @@
 "use client";
 
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addDays, monthRange, vnDayKey } from "@repo/ui/lib/date/vn";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 /**
  * Date-range filter for the Shopee report.
@@ -12,10 +14,15 @@ import { addDays, monthRange, vnDayKey } from "@repo/ui/lib/date/vn";
  */
 export function ShopeeDateFilter({ from, to }: { from: string; to: string }) {
   const router = useRouter();
+  const [pending, startTransition] = useTransition();
 
   function apply(nextFrom: string, nextTo: string) {
     const params = new URLSearchParams({ from: nextFrom, to: nextTo });
-    router.replace(`/shopee?${params.toString()}`);
+    // The report re-runs several aggregates server-side; keep `pending` up for
+    // the whole round-trip rather than just the URL change.
+    startTransition(() => {
+      router.replace(`/shopee?${params.toString()}`);
+    });
   }
 
   const today = vnDayKey(new Date());
@@ -52,6 +59,7 @@ export function ShopeeDateFilter({ from, to }: { from: string; to: string }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-[13px]">
+        {pending ? <Spinner className="text-[#465FFF]" /> : null}
         <span className="text-[#667085]">Từ</span>
         <input
           type="date"

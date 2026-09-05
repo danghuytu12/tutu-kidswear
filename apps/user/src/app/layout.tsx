@@ -4,6 +4,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { CartProvider } from "@repo/ui/components/cart/CartContext";
 import { ToastProvider } from "@repo/ui/components/ui/toast";
 import { JsonLd } from "@repo/ui/components/JsonLd";
+import { TopProgressBar } from "@repo/ui/components/TopProgressBar";
 import {
   SITE,
   siteUrl,
@@ -98,6 +99,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-white text-black">
         <JsonLd data={organizationJsonLd()} />
+        <TopProgressBar />
         <CartProvider>
           <ToastProvider>{children}</ToastProvider>
         </CartProvider>

@@ -24,13 +24,13 @@ function MegaMenuItem({ menu }: { menu: MegaMenu }) {
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
-      <a
+      <Link
         href={menu.href}
         className="font-display flex items-center gap-1 py-6 text-[17px] font-bold text-[#b08560] hover:text-[#8a6647]"
       >
         {menu.label}
         <ChevronDownIcon className="h-4 w-4" />
-      </a>
+      </Link>
       {/* Mega panel */}
       <AnimatePresence>
         {open ? (
@@ -51,12 +51,12 @@ function MegaMenuItem({ menu }: { menu: MegaMenu }) {
                       <ul className="space-y-1.5">
                         {g.links.map((l) => (
                           <li key={l.href}>
-                            <a
+                            <Link
                               href={l.href}
                               className="text-[16px] text-black hover:text-[#b08560]"
                             >
                               {l.label}
-                            </a>
+                            </Link>
                           </li>
                         ))}
                       </ul>
@@ -103,24 +103,24 @@ export function SiteHeader() {
         <nav className="hidden flex-1 justify-center lg:flex">
           <ul className="flex items-center gap-6">
             <li>
-              <a
+              <Link
                 href={trangChu.href}
                 className="font-display py-6 text-[17px] font-bold text-[#b08560] hover:text-[#8a6647]"
               >
                 {trangChu.label}
-              </a>
+              </Link>
             </li>
             {megaMenus.map((m) => (
               <MegaMenuItem key={m.label} menu={m} />
             ))}
             {restSimple.map((l) => (
               <li key={l.href}>
-                <a
+                <Link
                   href={l.href}
                   className="font-display py-6 text-[17px] font-bold text-[#b08560] hover:text-[#8a6647]"
                 >
                   {l.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -129,12 +129,12 @@ export function SiteHeader() {
         {/* Right actions */}
         <div className="flex items-center gap-3">
           {/* Cart */}
-          <a href="/checkout" className="relative" aria-label="Giỏ hàng">
+          <Link href="/checkout" className="relative" aria-label="Giỏ hàng">
             <CartIcon className="h-7 w-7 text-[#b08560]" />
             <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#facc15] px-1 text-[10px] font-bold text-black">
               {totalQty}
             </span>
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -173,20 +173,20 @@ export function SiteHeader() {
                 </button>
               </div>
               <nav className="space-y-4">
-                <a
+                <Link
                   href={trangChu.href}
                   className="font-display block text-[16px] font-bold text-[#b08560]"
                 >
                   {trangChu.label}
-                </a>
+                </Link>
                 {megaMenus.map((m) => (
                   <div key={m.label}>
-                    <a
+                    <Link
                       href={m.href}
                       className="font-display block text-[16px] font-bold text-[#b08560]"
                     >
                       {m.label}
-                    </a>
+                    </Link>
                     <div className="mt-2 space-y-3 pl-3">
                       {m.groups.map((g) => (
                         <div key={g.title}>
@@ -196,12 +196,12 @@ export function SiteHeader() {
                           <ul className="mt-1 space-y-1 pl-2">
                             {g.links.map((l) => (
                               <li key={l.href}>
-                                <a
+                                <Link
                                   href={l.href}
                                   className="text-[14px] text-black/80"
                                 >
                                   {l.label}
-                                </a>
+                                </Link>
                               </li>
                             ))}
                           </ul>
@@ -211,13 +211,13 @@ export function SiteHeader() {
                   </div>
                 ))}
                 {restSimple.map((l) => (
-                  <a
+                  <Link
                     key={l.href}
                     href={l.href}
                     className="font-display block text-[16px] font-bold text-[#b08560]"
                   >
                     {l.label}
-                  </a>
+                  </Link>
                 ))}
               </nav>
             </motion.div>

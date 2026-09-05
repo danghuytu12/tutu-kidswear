@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import {
@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@repo/ui/components/ui/alert-dialog";
 import { cn } from "@repo/ui/lib/utils";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 // Deletes one order after confirming through a shadcn AlertDialog, then
 // refreshes the server-rendered list. `className` lets the mobile card render a
@@ -29,6 +30,7 @@ export function DeleteOrderButton({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   async function onConfirm() {
     if (busy) return;
@@ -37,7 +39,7 @@ export function DeleteOrderButton({
       const res = await fetch(`/api/orders/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("delete failed");
       setOpen(false);
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch {
       window.alert("Không thể xóa đơn hàng. Vui lòng thử lại.");
     } finally {
@@ -54,7 +56,7 @@ export function DeleteOrderButton({
           className,
         )}
       >
-        <Trash2 className="h-4 w-4" />
+        {busy || pending ? <Spinner /> : <Trash2 className="h-4 w-4" />}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -74,7 +76,14 @@ export function DeleteOrderButton({
             }}
             className="bg-destructive text-white hover:bg-destructive/90"
           >
-            {busy ? "Đang xóa…" : "Xóa"}
+            {busy ? (
+              <span className="inline-flex items-center gap-2">
+                <Spinner />
+                Đang xóa…
+              </span>
+            ) : (
+              "Xóa"
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

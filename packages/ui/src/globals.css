@@ -247,3 +247,29 @@
   animation: tutu-marquee 18s linear infinite;
   will-change: transform;
 }
+
+/* Navigation progress: ease out toward the right edge and stop short of it —
+   the real duration is unknown, so the bar never claims to be finished. */
+@keyframes tutu-progress {
+  0% { transform: scaleX(0.02); }
+  40% { transform: scaleX(0.45); }
+  75% { transform: scaleX(0.75); }
+  100% { transform: scaleX(0.92); }
+}
+.animate-progress {
+  animation: tutu-progress 8s cubic-bezier(0.1, 0.6, 0.3, 1) forwards;
+  will-change: transform;
+}
+
+/* Honour a reduced-motion preference: keep the indicators legible, drop the
+   movement. The progress bar holds a static width; skeletons stop pulsing. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-progress {
+    animation: none;
+    transform: scaleX(0.5);
+  }
+  .animate-pulse,
+  .animate-spin {
+    animation: none;
+  }
+}

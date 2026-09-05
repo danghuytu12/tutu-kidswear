@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 
@@ -34,6 +34,7 @@ function relativeTime(iso: string): string {
 
 export function NotificationBell() {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [count, setCount] = useState(0);
   const [orders, setOrders] = useState<NotifOrder[]>([]);
   const [open, setOpen] = useState(false);
@@ -43,7 +44,10 @@ export function NotificationBell() {
     try {
       const res = await fetch("/api/notifications", { cache: "no-store" });
       if (!res.ok) return; // keep previous state; retried next poll
-      const data = (await res.json()) as { count: number; orders: NotifOrder[] };
+      const data = (await res.json()) as {
+        count: number;
+        orders: NotifOrder[];
+      };
       setCount(data.count);
       setOrders(data.orders);
     } catch {
@@ -66,7 +70,10 @@ export function NotificationBell() {
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     };
@@ -80,7 +87,7 @@ export function NotificationBell() {
     setCount((c) => Math.max(0, c - 1));
     setOpen(false);
     fetch(`/api/notifications/${id}`, { method: "PATCH" }).catch(() => {});
-    router.push("/orders");
+    startTransition(() => router.push("/orders"));
   }
 
   return (

@@ -11,6 +11,7 @@ import { formatVnd } from "@repo/ui/lib/cart";
 import { MotionButton } from "@repo/ui/components/motion";
 import { compressToDataUrl } from "@/lib/image";
 import { readAmountsFromImage, matchesAmount } from "@/lib/ocr";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024; // 8 MB
 
@@ -116,11 +117,15 @@ export function QrPaymentModal({
         <div className="rounded-lg bg-[#faf6ef] p-4 text-[14px]">
           <div className="flex items-center justify-between">
             <span className="text-black/60">Số tiền cần chuyển</span>
-            <span className="font-bold text-[#b08560]">{formatVnd(amount)}</span>
+            <span className="font-bold text-[#b08560]">
+              {formatVnd(amount)}
+            </span>
           </div>
           <div className="mt-1 flex items-center justify-between">
             <span className="text-black/60">Nội dung chuyển khoản</span>
-            <span className="font-medium text-black">Nhập số điện thoại mua hàng</span>
+            <span className="font-medium text-black">
+              Nhập số điện thoại mua hàng
+            </span>
           </div>
         </div>
 
@@ -151,7 +156,14 @@ export function QrPaymentModal({
           disabled={checking}
           className="w-full cursor-pointer rounded-full bg-[#b08560] py-3 text-[16px] font-semibold text-white hover:bg-[#8a6647] disabled:opacity-60"
         >
-          {checking ? "Đang kiểm tra..." : "Xác nhận đã chuyển khoản"}
+          {checking ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Spinner />
+              Đang kiểm tra...
+            </span>
+          ) : (
+            "Xác nhận đã chuyển khoản"
+          )}
         </MotionButton>
       </DialogContent>
     </Dialog>

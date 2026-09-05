@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Package, ShoppingBag, Users, TrendingUp } from "lucide-react";
+import { Spinner } from "@repo/ui/components/Spinner";
 import type { DashboardStats } from "@repo/ui/lib/db/repositories/stats";
 import { formatVnd } from "@repo/ui/lib/cart";
 import { DashboardCharts } from "@/components/DashboardCharts";
@@ -28,20 +29,24 @@ export function DashboardClient({ initial }: { initial: DashboardStats }) {
   const [to, setTo] = useState(initial.to);
   const [pending, startTransition] = useTransition();
 
-  async function load(nextFrom: string, nextTo: string) {
+  // The whole fetch runs inside the transition, not just the state update —
+  // otherwise `pending` flips for a single frame once the request has already
+  // finished, and the wait itself shows no feedback at all.
+  function load(nextFrom: string, nextTo: string) {
     setFrom(nextFrom);
     setTo(nextTo);
-    const res = await fetch(
-      `/api/stats?from=${nextFrom}&to=${nextTo}`,
-      { cache: "no-store" },
-    );
-    if (!res.ok) return;
-    const data = (await res.json()) as { stats: DashboardStats };
-    startTransition(() => setStats(data.stats));
+    startTransition(async () => {
+      const res = await fetch(`/api/stats?from=${nextFrom}&to=${nextTo}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as { stats: DashboardStats };
+      setStats(data.stats);
+    });
   }
 
   function applyPreset(days: number) {
-    void load(dayKeyDaysAgo(days - 1), dayKeyDaysAgo(0));
+    load(dayKeyDaysAgo(days - 1), dayKeyDaysAgo(0));
   }
 
   const activePreset = PRESETS.find(
@@ -49,10 +54,30 @@ export function DashboardClient({ initial }: { initial: DashboardStats }) {
   )?.days;
 
   const cards = [
-    { label: "Sản phẩm", value: String(stats.productCount), icon: Package, tone: "#b08560" },
-    { label: "Đơn trong kỳ", value: String(stats.ordersInRange), icon: ShoppingBag, tone: "#c2864e" },
-    { label: "Khách hàng", value: String(stats.customerCount), icon: Users, tone: "#a67b5b" },
-    { label: "Doanh thu", value: formatVnd(stats.revenue), icon: TrendingUp, tone: "#8a6647" },
+    {
+      label: "Sản phẩm",
+      value: String(stats.productCount),
+      icon: Package,
+      tone: "#b08560",
+    },
+    {
+      label: "Đơn trong kỳ",
+      value: String(stats.ordersInRange),
+      icon: ShoppingBag,
+      tone: "#c2864e",
+    },
+    {
+      label: "Khách hàng",
+      value: String(stats.customerCount),
+      icon: Users,
+      tone: "#a67b5b",
+    },
+    {
+      label: "Doanh thu",
+      value: formatVnd(stats.revenue),
+      icon: TrendingUp,
+      tone: "#8a6647",
+    },
   ];
 
   return (
@@ -76,6 +101,8 @@ export function DashboardClient({ initial }: { initial: DashboardStats }) {
           ))}
         </div>
 
+        {pending ? <Spinner className="text-[#b08560]" /> : null}
+
         <div className="ml-auto flex items-center gap-2 text-[13px]">
           <span className="text-black/45">Từ</span>
           <input
@@ -97,7 +124,11 @@ export function DashboardClient({ initial }: { initial: DashboardStats }) {
       </div>
 
       {/* Charts hold their previous render at reduced opacity while refetching */}
-      <div className={pending ? "opacity-60 transition-opacity" : "transition-opacity"}>
+      <div
+        className={
+          pending ? "opacity-60 transition-opacity" : "transition-opacity"
+        }
+      >
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map(({ label, value, icon: Icon, tone }) => (
             <div
