@@ -1,3 +1,4 @@
+import { TopProgressBar } from "@repo/ui/components/TopProgressBar";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { AdminTopbar } from "@/components/AdminTopbar";
 
@@ -6,6 +7,7 @@ export default function DashboardLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="flex min-h-screen">
+      <TopProgressBar />
       <AdminSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminTopbar />

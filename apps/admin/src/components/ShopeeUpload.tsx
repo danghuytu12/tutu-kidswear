@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@repo/ui/components/ui/alert-dialog";
+import { Spinner } from "@repo/ui/components/Spinner";
 import {
   formatDayKey,
   parseShopeeFilename,
@@ -120,8 +121,17 @@ export function ShopeeUpload() {
           disabled={busy}
           className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#465FFF] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#3641F5] disabled:opacity-50 sm:w-auto"
         >
-          <Upload className="h-4 w-4" />
-          {busy ? "Đang tải lên…" : "Chọn tệp .xlsx"}
+          {busy ? (
+            <>
+              <Spinner />
+              Đang tải lên…
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4" />
+              Chọn tệp .xlsx
+            </>
+          )}
         </button>
         <input
           ref={inputRef}
@@ -193,7 +203,14 @@ export function ShopeeUpload() {
                 void onConfirm();
               }}
             >
-              {busy ? "Đang nhập…" : "Nhập dữ liệu"}
+              {busy ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner />
+                  Đang nhập…
+                </span>
+              ) : (
+                "Nhập dữ liệu"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

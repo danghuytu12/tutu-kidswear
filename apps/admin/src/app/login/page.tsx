@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -83,7 +84,14 @@ export default function LoginPage() {
           disabled={submitting || !username || !password}
           className="w-full cursor-pointer rounded-full bg-[#b08560] py-3 text-[16px] font-semibold text-white hover:bg-[#8a6647] disabled:opacity-60"
         >
-          {submitting ? "Đang đăng nhập..." : "Đăng nhập"}
+          {submitting ? (
+            <span className="inline-flex items-center gap-2">
+              <Spinner />
+              Đang đăng nhập...
+            </span>
+          ) : (
+            "Đăng nhập"
+          )}
         </button>
       </form>
     </div>

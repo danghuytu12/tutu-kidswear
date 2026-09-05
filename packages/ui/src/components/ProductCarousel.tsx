@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Product } from "@repo/ui/lib/types";
 import { ProductCard } from "@repo/ui/components/ProductCard";
 import { StaggerGrid, StaggerItem } from "@repo/ui/components/motion";
@@ -33,12 +34,12 @@ export function ProductCarousel({
           )}
           <div className="flex flex-1 justify-end">
             {topRightLabel && (
-              <a
+              <Link
                 href={topRightHref}
                 className="text-[14px] text-[#a67b5b] hover:underline"
               >
                 {topRightLabel}
-              </a>
+              </Link>
             )}
           </div>
         </div>
@@ -57,12 +58,12 @@ export function ProductCarousel({
 
       {moreLabel && (
         <div className="mt-6 flex justify-center">
-          <a
+          <Link
             href={moreHref}
             className="rounded-full bg-[#b08560] px-8 py-2 text-[14px] text-white transition-colors hover:bg-[#8a6647]"
           >
             {moreLabel}
-          </a>
+          </Link>
         </div>
       )}
     </section>

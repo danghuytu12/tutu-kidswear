@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@repo/ui/components/cart/CartContext";
 import { useToast } from "@repo/ui/components/ui/toast";
@@ -23,6 +23,7 @@ import {
   DeliveryIcon,
 } from "@repo/ui/components/icons";
 import { MotionButton } from "@repo/ui/components/motion";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 // Optional overrides from the DB product (by slug). Rich fields not stored in
 // the DB (reviews) still come from the static pdpProduct.
@@ -45,12 +46,15 @@ export interface ProductDetailData {
 
 export function ProductDetail({ data }: { data?: ProductDetailData }) {
   const gallery =
-    data?.gallery && data.gallery.length > 0 ? data.gallery : pdpProduct.gallery;
+    data?.gallery && data.gallery.length > 0
+      ? data.gallery
+      : pdpProduct.gallery;
   const name = data?.name ?? pdpProduct.name;
   const orig = data?.orig ?? pdpProduct.orig;
   const sale = data?.sale ?? pdpProduct.sale;
   const discPct = data?.discPct ?? pdpProduct.discPct;
-  const sizes = data?.sizes && data.sizes.length > 0 ? data.sizes : pdpProduct.sizes;
+  const sizes =
+    data?.sizes && data.sizes.length > 0 ? data.sizes : pdpProduct.sizes;
   const colors = data?.colors ?? [];
   const [active, setActive] = useState(0);
   const [selectedSize, setSelectedSize] = useState(sizes[0]);
@@ -58,6 +62,7 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
   const [qty, setQty] = useState(1);
 
   const router = useRouter();
+  const [navigating, startTransition] = useTransition();
   const { addItem } = useCart();
   const toast = useToast();
   const href = data?.href ?? "/products/ao-coc-cotton-van-mong-nau-tay-raclan";
@@ -86,10 +91,13 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
       { href, name, img: gallery[0], price: parsePriceVnd(sale), ...variant() },
       qty,
     );
-    router.push("/checkout");
+    // /checkout reads the DB on every request, so keep the button busy for the
+    // whole navigation rather than appearing to do nothing.
+    startTransition(() => router.push("/checkout"));
   };
 
-  const prev = () => setActive((a) => (a - 1 + gallery.length) % gallery.length);
+  const prev = () =>
+    setActive((a) => (a - 1 + gallery.length) % gallery.length);
   const next = () => setActive((a) => (a + 1) % gallery.length);
 
   return (
@@ -237,7 +245,9 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
             >
               <MinusIcon className="h-4 w-4" />
             </MotionButton>
-            <span className="w-8 text-center text-[15px] text-black">{qty}</span>
+            <span className="w-8 text-center text-[15px] text-black">
+              {qty}
+            </span>
             <MotionButton
               type="button"
               aria-label="Tăng số lượng"
@@ -261,9 +271,17 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
           <MotionButton
             type="button"
             onClick={buyNow}
-            className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5]"
+            disabled={navigating}
+            className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5] disabled:opacity-60"
           >
-            Mua ngay
+            {navigating ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <Spinner />
+                Mua ngay
+              </span>
+            ) : (
+              "Mua ngay"
+            )}
           </MotionButton>
         </div>
 

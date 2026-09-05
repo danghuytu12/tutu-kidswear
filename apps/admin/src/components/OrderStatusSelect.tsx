@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@repo/ui/components/Spinner";
 import {
   ORDER_STATUSES,
   ORDER_STATUS_LABELS,
@@ -31,6 +32,7 @@ export function OrderStatusSelect({
   const router = useRouter();
   const [value, setValue] = useState<Status>(status);
   const [busy, setBusy] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   async function onChange(next: Status) {
     if (busy || next === value) return;
@@ -44,7 +46,9 @@ export function OrderStatusSelect({
         body: JSON.stringify({ status: next }),
       });
       if (!res.ok) throw new Error("update failed");
-      router.refresh();
+      // Inside a transition so `busy` lasts until the server re-render lands,
+      // rather than clearing while the table still shows the old value.
+      startTransition(() => router.refresh());
     } catch {
       setValue(prev); // revert on failure
     } finally {
@@ -53,18 +57,23 @@ export function OrderStatusSelect({
   }
 
   return (
-    <select
-      value={value}
-      disabled={busy}
-      onChange={(e) => onChange(e.target.value as Status)}
-      aria-label="Trạng thái đơn hàng"
-      className={`cursor-pointer rounded-full border-0 px-2.5 py-1 text-xs font-medium outline-none focus:ring-2 focus:ring-[#465FFF]/30 disabled:opacity-50 ${STATUS_STYLES[value]}`}
-    >
-      {ORDER_STATUSES.map((s) => (
-        <option key={s} value={s} className="bg-white text-[#344054]">
-          {STATUS_LABELS[s]}
-        </option>
-      ))}
-    </select>
+    <span className="inline-flex items-center gap-1.5">
+      <select
+        value={value}
+        disabled={busy}
+        onChange={(e) => onChange(e.target.value as Status)}
+        aria-label="Trạng thái đơn hàng"
+        className={`cursor-pointer rounded-full border-0 px-2.5 py-1 text-xs font-medium outline-none focus:ring-2 focus:ring-[#465FFF]/30 disabled:opacity-50 ${STATUS_STYLES[value]}`}
+      >
+        {ORDER_STATUSES.map((s) => (
+          <option key={s} value={s} className="bg-white text-[#344054]">
+            {STATUS_LABELS[s]}
+          </option>
+        ))}
+      </select>
+      {busy || pending ? (
+        <Spinner className="h-3.5 w-3.5 text-[#667085]" />
+      ) : null}
+    </span>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Product } from "@repo/ui/lib/types";
 
 // Neutral cream placeholder shown if a product photo fails to load.
@@ -23,7 +24,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   return (
-    <a href={product.href} className="group block">
+    <Link href={product.href} className="group block">
       <div className="relative overflow-hidden rounded-md bg-white">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -55,6 +56,6 @@ export function ProductCard({ product }: ProductCardProps) {
           </span>
         )}
       </div>
-    </a>
+    </Link>
   );
 }

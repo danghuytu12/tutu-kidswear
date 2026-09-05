@@ -8,6 +8,7 @@ import { shippingFee } from "@repo/ui/lib/cart";
 import type { OrderInput } from "@repo/ui/lib/db/types";
 import { MotionButton } from "@repo/ui/components/motion";
 import { QrPaymentModal } from "./QrPaymentModal";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 const inputClass =
   "rounded-full border border-black/15 px-5 py-3 text-[15px] w-full outline-none focus:border-[#b08560] placeholder:text-black/40";
@@ -35,11 +36,17 @@ export function OrderForm() {
   /** Validate the shared required fields. Returns true when the form is valid. */
   function validate(): boolean {
     if (!name.trim() || !phone.trim() || !address.trim()) {
-      toast.error("Thiếu thông tin", "Vui lòng nhập Họ tên, Số điện thoại và Địa chỉ.");
+      toast.error(
+        "Thiếu thông tin",
+        "Vui lòng nhập Họ tên, Số điện thoại và Địa chỉ.",
+      );
       return false;
     }
     if (!PHONE_RE.test(phone.trim().replace(/[\s.]/g, ""))) {
-      toast.error("Số điện thoại không hợp lệ", "Vui lòng nhập số di động Việt Nam gồm 10 chữ số, bắt đầu bằng 0.");
+      toast.error(
+        "Số điện thoại không hợp lệ",
+        "Vui lòng nhập số di động Việt Nam gồm 10 chữ số, bắt đầu bằng 0.",
+      );
       return false;
     }
     if (items.length === 0) {
@@ -87,7 +94,10 @@ export function OrderForm() {
     const data = (await res.json()) as { order: { _id: string } };
     toast.success("Đặt hàng thành công!", `Mã đơn: ${data.order._id}`);
     clear();
-    setName(""); setPhone(""); setAddress(""); setNote("");
+    setName("");
+    setPhone("");
+    setAddress("");
+    setNote("");
   }
 
   /** Primary "Thanh Toán" button: COD posts directly, QR opens the QR modal. */
@@ -101,7 +111,10 @@ export function OrderForm() {
     try {
       await submitOrder();
     } catch (err) {
-      toast.error("Không thể tạo đơn hàng", err instanceof Error ? err.message : undefined);
+      toast.error(
+        "Không thể tạo đơn hàng",
+        err instanceof Error ? err.message : undefined,
+      );
     } finally {
       setSubmitting(false);
     }
@@ -221,7 +234,14 @@ export function OrderForm() {
         disabled={submitting}
         className="mt-5 w-full cursor-pointer rounded-full bg-[#b08560] py-3.5 text-[16px] font-semibold text-white hover:bg-[#8a6647] disabled:opacity-60"
       >
-        {submitting ? "Đang xử lý..." : "Thanh Toán"}
+        {submitting ? (
+          <span className="inline-flex items-center justify-center gap-2">
+            <Spinner />
+            Đang xử lý...
+          </span>
+        ) : (
+          "Thanh Toán"
+        )}
       </MotionButton>
 
       <QrPaymentModal

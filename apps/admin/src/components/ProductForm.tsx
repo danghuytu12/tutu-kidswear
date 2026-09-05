@@ -10,6 +10,7 @@ import type {
 } from "@repo/ui/lib/db/types";
 import { normalizeImageUrl } from "@repo/ui/lib/image-url";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 function Label({ text }: { text: string }) {
   return (
@@ -781,7 +782,14 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
             onClick={() => submit("publish")}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#465FFF] px-5 py-3.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#3641F5] disabled:bg-[#9CB9FF]"
           >
-            {submitting ? "Saving..." : submitLabel}
+            {submitting ? (
+              <span className="inline-flex items-center gap-2">
+                <Spinner />
+                Saving...
+              </span>
+            ) : (
+              submitLabel
+            )}
           </button>
         </div>
       </div>

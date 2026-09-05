@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import type { OrderDoc } from "@repo/ui/lib/db/types";
@@ -31,6 +31,7 @@ import {
   MobileCard,
   MobileCardList,
 } from "@/components/MobileCard";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 const COLUMNS = [
   "Mã đơn",
@@ -80,6 +81,7 @@ export function OrdersTable({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   const allSelected = orders.length > 0 && selected.size === orders.length;
   const someSelected = selected.size > 0;
@@ -113,7 +115,7 @@ export function OrdersTable({
       if (!res.ok) throw new Error("bulk delete failed");
       setSelected(new Set());
       setConfirmOpen(false);
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch {
       window.alert("Không thể xóa các đơn hàng. Vui lòng thử lại.");
     } finally {
@@ -410,14 +412,21 @@ export function OrdersTable({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={busy}>Hủy</AlertDialogCancel>
             <AlertDialogAction
-              disabled={busy}
+              disabled={busy || pending}
               onClick={(e) => {
                 e.preventDefault();
                 void deleteSelected();
               }}
               className="bg-destructive text-white hover:bg-destructive/90"
             >
-              {busy ? "Đang xóa…" : "Xóa"}
+              {busy ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner />
+                  Đang xóa…
+                </span>
+              ) : (
+                "Xóa"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

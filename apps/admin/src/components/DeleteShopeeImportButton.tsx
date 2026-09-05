@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@repo/ui/components/ui/alert-dialog";
+import { Spinner } from "@repo/ui/components/Spinner";
 
 // Deletes one import and every row it created, then refreshes the report.
 export function DeleteShopeeImportButton({
@@ -31,7 +32,9 @@ export function DeleteShopeeImportButton({
     if (busy) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/shopee-imports/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/shopee-imports/${id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("delete failed");
       setOpen(false);
       router.refresh();
@@ -54,9 +57,9 @@ export function DeleteShopeeImportButton({
         <AlertDialogHeader>
           <AlertDialogTitle>Xóa lần nhập này?</AlertDialogTitle>
           <AlertDialogDescription>
-            Toàn bộ dòng dữ liệu từ tệp <strong>{filename}</strong> sẽ bị xóa khỏi
-            báo cáo. Hành động này không thể hoàn tác — muốn khôi phục thì phải
-            tải lại tệp từ Shopee.
+            Toàn bộ dòng dữ liệu từ tệp <strong>{filename}</strong> sẽ bị xóa
+            khỏi báo cáo. Hành động này không thể hoàn tác — muốn khôi phục thì
+            phải tải lại tệp từ Shopee.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -69,7 +72,14 @@ export function DeleteShopeeImportButton({
             }}
             className="bg-destructive text-white hover:bg-destructive/90"
           >
-            {busy ? "Đang xóa…" : "Xóa"}
+            {busy ? (
+              <span className="inline-flex items-center gap-2">
+                <Spinner />
+                Đang xóa…
+              </span>
+            ) : (
+              "Xóa"
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
