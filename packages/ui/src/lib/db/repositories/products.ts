@@ -18,6 +18,15 @@ function formatVnd(price: number): string {
  * variant's `sellPrice` and the product-wide discount. If a discount applies,
  * `sale` = discounted price and `orig` = the pre-discount `sellPrice`.
  */
+/**
+ * Clamp a money field to a non-negative whole number of VND, or drop it when
+ * unset — a missing price stays missing rather than becoming 0.
+ */
+function money(value: number | undefined): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return Math.max(0, Math.round(value));
+}
+
 function derivePricing(
   variants: ProductVariant[],
   discountPct: number,
@@ -59,6 +68,10 @@ function normalizeProductInput(input: ProductInput): ProductInput {
     isNew: Boolean(input.isNew),
     isBestSeller: Boolean(input.isBestSeller),
     img: thumbnail,
+    buyPrice: money(input.buyPrice),
+    facebookPrice: money(input.facebookPrice),
+    shopeePrice: money(input.shopeePrice),
+    tiktokPrice: money(input.tiktokPrice),
     price: pricing.price,
     sale: pricing.sale,
     orig: pricing.orig,

@@ -5,13 +5,17 @@ import {
   deleteProduct,
 } from "@repo/ui/lib/db/repositories/products";
 import type { ProductInput } from "@repo/ui/lib/db/types";
+import { requireSession } from "@/lib/require-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ id: string }> };
 
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(request: Request, { params }: Params) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const product = await getProductById(id);
@@ -28,6 +32,9 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PUT(request: Request, { params }: Params) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const body = (await request.json()) as Partial<ProductInput>;
@@ -44,7 +51,10 @@ export async function PUT(request: Request, { params }: Params) {
   }
 }
 
-export async function DELETE(_request: Request, { params }: Params) {
+export async function DELETE(request: Request, { params }: Params) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const ok = await deleteProduct(id);

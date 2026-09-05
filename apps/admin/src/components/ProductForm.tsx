@@ -174,7 +174,9 @@ function CheckboxField({
         className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
       />
       <span>
-        <span className="block text-sm font-medium text-[#344054]">{label}</span>
+        <span className="block text-sm font-medium text-[#344054]">
+          {label}
+        </span>
         <span className="mt-0.5 block text-xs text-[#667085]">
           {description}
         </span>
@@ -244,6 +246,15 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
   const [category, setCategory] = useState(initial?.category ?? "");
   const [buyPrice, setBuyPrice] = useState(
     initial?.buyPrice ? String(initial.buyPrice) : "",
+  );
+  const [facebookPrice, setFacebookPrice] = useState(
+    initial?.facebookPrice ? String(initial.facebookPrice) : "",
+  );
+  const [shopeePrice, setShopeePrice] = useState(
+    initial?.shopeePrice ? String(initial.shopeePrice) : "",
+  );
+  const [tiktokPrice, setTiktokPrice] = useState(
+    initial?.tiktokPrice ? String(initial.tiktokPrice) : "",
   );
   const [discountPct, setDiscountPct] = useState(
     initial?.discountPct ? String(initial.discountPct) : "",
@@ -359,6 +370,25 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
       return;
     }
 
+    // Cost and per-channel prices are required. Older products predate these
+    // fields, so the check lives here rather than in the (optional) schema —
+    // editing one prompts for the missing prices instead of failing to load.
+    const missingPrices = (
+      [
+        ["giá nhập", buyPrice],
+        ["giá bán Facebook", facebookPrice],
+        ["giá bán Shopee", shopeePrice],
+        ["giá bán TikTok", tiktokPrice],
+      ] as const
+    )
+      .filter(([, value]) => toNumber(value) <= 0)
+      .map(([label]) => label);
+
+    if (missingPrices.length > 0) {
+      setError(`Vui lòng nhập ${missingPrices.join(", ")}.`);
+      return;
+    }
+
     // Normalize (e.g. Google Drive share links → direct) and drop blanks.
     const images = imageUrls
       .map((u) => normalizeImageUrl(u))
@@ -378,6 +408,9 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
       inStock: status === "publish",
       variants: cleanVariants,
       buyPrice: toNumber(buyPrice),
+      facebookPrice: toNumber(facebookPrice),
+      shopeePrice: toNumber(shopeePrice),
+      tiktokPrice: toNumber(tiktokPrice),
       discountPct: Math.min(Math.max(toNumber(discountPct), 0), 100),
       isNew,
       isBestSeller,
@@ -586,14 +619,44 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
               Thêm biến thể
             </button>
 
-            <div className="grid grid-cols-1 gap-5 border-t border-[#E4E7EC] pt-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 border-t border-[#E4E7EC] pt-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
-                <Label text="Giá mua (VND) — áp dụng cho cả sản phẩm" />
+                <Label text="Giá nhập (VND) — áp dụng cho cả sản phẩm" />
                 <input
                   type="number"
                   placeholder="200000"
                   value={buyPrice}
                   onChange={(e) => setBuyPrice(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <Label text="Giá bán Facebook (VND)" />
+                <input
+                  type="number"
+                  placeholder="290000"
+                  value={facebookPrice}
+                  onChange={(e) => setFacebookPrice(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <Label text="Giá bán Shopee (VND)" />
+                <input
+                  type="number"
+                  placeholder="299000"
+                  value={shopeePrice}
+                  onChange={(e) => setShopeePrice(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <Label text="Giá bán TikTok (VND)" />
+                <input
+                  type="number"
+                  placeholder="295000"
+                  value={tiktokPrice}
+                  onChange={(e) => setTiktokPrice(e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -615,8 +678,8 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
           <div className="space-y-4">
             <p className="text-sm text-[#667085]">
               Dán link ảnh (Google Drive, hoặc URL ảnh bất kỳ). Ảnh đầu tiên là
-              ảnh đại diện. Link Google Drive dạng chia sẻ sẽ tự chuyển sang link
-              hiển thị trực tiếp.
+              ảnh đại diện. Link Google Drive dạng chia sẻ sẽ tự chuyển sang
+              link hiển thị trực tiếp.
             </p>
 
             <div className="space-y-3">
@@ -705,7 +768,9 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
           <button
             type="button"
             disabled={submitting}
-            onClick={() => (isEdit ? router.push("/products") : submit("draft"))}
+            onClick={() =>
+              isEdit ? router.push("/products") : submit("draft")
+            }
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3.5 text-sm font-medium text-[#344054] ring-1 ring-inset ring-[#D0D5DD] transition hover:bg-gray-50 disabled:opacity-60"
           >
             {isEdit ? "Cancel" : "Draft"}
