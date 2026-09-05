@@ -134,17 +134,32 @@ export type OrderInput = {
   paymentProof?: string;
 };
 
+/**
+ * A customer in the address book — imported from a spreadsheet, and matched
+ * against orders by phone number.
+ *
+ * Distinct from the order-derived customer list: this holds people the shop
+ * knows about, whether or not they have bought anything yet.
+ */
 export interface CustomerDoc {
   _id: string;
   name: string;
-  email: string;
+  /** Normalised digits. The key for matching orders and re-imports. */
+  phone: string;
+  email?: string;
+  address?: string;
+  ward?: string;
+  district?: string;
+  province?: string;
+  note?: string;
+  /** Where they came from: Facebook, Shopee, TikTok, giới thiệu… */
+  source?: string;
   createdAt: string;
+  /** Stamped when a later import updated this record. */
+  updatedAt?: string;
 }
 
-export type CustomerInput = {
-  name: string;
-  email: string;
-};
+export type CustomerInput = Omit<CustomerDoc, "_id" | "createdAt" | "updatedAt">;
 
 /**
  * One line-item row from a Shopee order export.
