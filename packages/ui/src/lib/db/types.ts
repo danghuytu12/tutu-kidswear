@@ -36,6 +36,12 @@ export interface ProductDoc extends Product {
   variants: ProductVariant[];
   /** Product-wide cost / purchase price in VND (giá mua). */
   buyPrice?: number;
+  /** Selling price on Facebook in VND (giá bán Facebook). */
+  facebookPrice?: number;
+  /** Selling price on Shopee in VND (giá bán Shopee). */
+  shopeePrice?: number;
+  /** Selling price on TikTok Shop in VND (giá bán TikTok). */
+  tiktokPrice?: number;
   /** Product-wide discount percentage 0–100 (phần trăm khuyến mại). */
   discountPct?: number;
   /** Flagged as a "new arrival" (sản phẩm mới) in admin. Absent/false = not new. */
