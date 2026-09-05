@@ -14,17 +14,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@repo/ui/components/ui/alert-dialog";
-import { cn } from "@repo/ui/lib/utils";
 
-// Deletes one order after confirming through a shadcn AlertDialog, then
-// refreshes the server-rendered list. `className` lets the mobile card render a
-// wider, easier-to-tap variant.
-export function DeleteOrderButton({
+// Deletes one import and every row it created, then refreshes the report.
+export function DeleteShopeeImportButton({
   id,
-  className,
+  filename,
 }: {
   id: string;
-  className?: string;
+  filename: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -34,12 +31,12 @@ export function DeleteOrderButton({
     if (busy) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/orders/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/shopee-imports/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("delete failed");
       setOpen(false);
       router.refresh();
     } catch {
-      window.alert("Không thể xóa đơn hàng. Vui lòng thử lại.");
+      window.alert("Không thể xóa lần nhập này. Vui lòng thử lại.");
     } finally {
       setBusy(false);
     }
@@ -48,20 +45,18 @@ export function DeleteOrderButton({
   return (
     <AlertDialog open={open} onOpenChange={(next) => setOpen(next)}>
       <AlertDialogTrigger
-        aria-label="Xóa đơn hàng"
-        className={cn(
-          "inline-flex items-center justify-center rounded-lg p-2 text-[#B42318] transition hover:bg-[#FEF3F2] disabled:opacity-50",
-          className,
-        )}
+        aria-label={`Xóa lần nhập ${filename}`}
+        className="inline-flex items-center justify-center rounded-lg p-2 text-[#B42318] transition hover:bg-[#FEF3F2] disabled:opacity-50"
       >
         <Trash2 className="h-4 w-4" />
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Xóa đơn hàng?</AlertDialogTitle>
+          <AlertDialogTitle>Xóa lần nhập này?</AlertDialogTitle>
           <AlertDialogDescription>
-            Hành động này không thể hoàn tác. Đơn hàng sẽ bị xóa vĩnh viễn khỏi
-            hệ thống.
+            Toàn bộ dòng dữ liệu từ tệp <strong>{filename}</strong> sẽ bị xóa khỏi
+            báo cáo. Hành động này không thể hoàn tác — muốn khôi phục thì phải
+            tải lại tệp từ Shopee.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

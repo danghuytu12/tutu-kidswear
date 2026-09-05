@@ -3,9 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
+import { cn } from "@repo/ui/lib/utils";
 
 // Deletes a product via the admin API and refreshes the (server-rendered) list.
-export function DeleteProductButton({ id }: { id: string }) {
+// `className` lets the mobile card render a wider, easier-to-tap variant.
+export function DeleteProductButton({
+  id,
+  className,
+}: {
+  id: string;
+  className?: string;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -27,7 +35,10 @@ export function DeleteProductButton({ id }: { id: string }) {
       aria-label="Delete product"
       onClick={onDelete}
       disabled={busy}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#667085] transition hover:bg-[#FEF3F2] hover:text-[#B42318] disabled:opacity-50"
+      className={cn(
+        "inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#667085] transition hover:bg-[#FEF3F2] hover:text-[#B42318] disabled:opacity-50",
+        className,
+      )}
     >
       <Trash2 className="h-4 w-4" />
     </button>

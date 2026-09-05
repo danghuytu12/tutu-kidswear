@@ -12,6 +12,12 @@ import { listProducts } from "@repo/ui/lib/db/repositories/products";
 import type { ProductDoc } from "@repo/ui/lib/db/types";
 import { DeleteProductButton } from "@/components/DeleteProductButton";
 import { Pagination, PAGE_SIZE, parsePage } from "@/components/Pagination";
+import {
+  CardEmpty,
+  CardField,
+  MobileCard,
+  MobileCardList,
+} from "@/components/MobileCard";
 
 // Read live from the shared MongoDB; never cache at build time.
 export const runtime = "nodejs";
@@ -172,17 +178,17 @@ export default async function ProductsPage({
               Track your store&apos;s progress to boost your sales.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <button
               type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3.5 text-sm font-medium text-[#344054] ring-1 ring-inset ring-[#D0D5DD] transition hover:bg-gray-50"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-5 py-3.5 text-sm font-medium text-[#344054] ring-1 ring-inset ring-[#D0D5DD] transition hover:bg-gray-50 sm:w-auto"
             >
               Export
               <Download className="h-4 w-4" />
             </button>
             <Link
               href="/add-product"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#465FFF] px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-[#3641F5]"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#465FFF] px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-[#3641F5] sm:w-auto"
             >
               <Plus className="h-5 w-5" />
               Add Product
@@ -190,8 +196,8 @@ export default async function ProductsPage({
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative">
+        <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="relative w-full sm:w-auto">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#98A2B3]" />
             <input
               type="text"
@@ -201,14 +207,14 @@ export default async function ProductsPage({
           </div>
           <button
             type="button"
-            className="flex h-11 items-center justify-center gap-2 rounded-lg border border-[#D0D5DD] bg-white px-4 py-2.5 text-sm font-medium text-[#344054] shadow-sm sm:min-w-[100px]"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#D0D5DD] bg-white px-4 py-2.5 text-sm font-medium text-[#344054] shadow-sm sm:w-auto sm:min-w-[100px]"
           >
             <SlidersHorizontal className="h-5 w-5" />
             Filter
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto lg:block">
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#E4E7EC]">
@@ -304,6 +310,63 @@ export default async function ProductsPage({
             </tbody>
           </table>
         </div>
+
+        {products.length === 0 ? (
+          <CardEmpty>
+            Chưa có sản phẩm nào. Nhấn{" "}
+            <span className="font-medium text-[#1D2939]">+ Add Product</span> để
+            thêm sản phẩm đầu tiên.
+          </CardEmpty>
+        ) : (
+          <MobileCardList>
+            {pageProducts.map((p) => (
+              <MobileCard key={`m-${p.name}-${p.date}`}>
+                <div className="flex items-start gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={p.img}
+                    alt={p.name}
+                    className="h-14 w-14 flex-none rounded-md object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#1D2939]">
+                      {p.name}
+                    </p>
+                    <span
+                      className={
+                        p.inStock
+                          ? "mt-1 inline-flex rounded-full bg-[#ECFDF3] px-2 py-0.5 text-xs font-medium text-[#027A48]"
+                          : "mt-1 inline-flex rounded-full bg-[#FEF3F2] px-2 py-0.5 text-xs font-medium text-[#B42318]"
+                      }
+                    >
+                      {p.inStock ? "In Stock" : "Out of Stock"}
+                    </span>
+                  </div>
+                </div>
+
+                <CardField label="Category">{p.category}</CardField>
+                <CardField label="Price">{p.price}</CardField>
+                <CardField label="Date">{p.date}</CardField>
+
+                {p.id ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <Link
+                      href={`/edit-product/${p.id}`}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-[#D0D5DD] text-sm font-medium text-[#344054] transition hover:bg-gray-50"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Sửa
+                    </Link>
+                    <DeleteProductButton
+                      id={p.id}
+                      className="h-10 w-10 border border-[#FDA29B] text-[#B42318]"
+                    />
+                  </div>
+                ) : null}
+              </MobileCard>
+            ))}
+          </MobileCardList>
+        )}
 
         <Pagination
           pathname="/products"

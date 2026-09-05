@@ -1,29 +1,9 @@
 import { NextResponse } from "next/server";
 
-/** Vietnam is UTC+7 (no daylight saving). */
-const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
-
-/**
- * The current calendar day in Vietnam time as a YYYY-MM-DD key, computed from an
- * absolute instant — independent of the host server's own timezone.
- */
-export function vnDayKey(now: Date): string {
-  const vn = new Date(now.getTime() + VN_OFFSET_MS);
-  const y = vn.getUTCFullYear();
-  const m = String(vn.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(vn.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-/** Shift a YYYY-MM-DD key by `delta` days (may be negative), staying calendar-safe. */
-export function addDays(key: string, delta: number): string {
-  const d = new Date(`${key}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + delta);
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(d.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
+// vnDayKey/addDays moved to @repo/ui so the Shopee importer (which lives in the
+// shared package) can use them too — a package cannot import back out of an app.
+// Re-exported here so existing cron route imports keep working unchanged.
+export { vnDayKey, addDays } from "@repo/ui/lib/date/vn";
 
 /**
  * The inclusive [from, to] YYYY-MM-DD span of the calendar month immediately

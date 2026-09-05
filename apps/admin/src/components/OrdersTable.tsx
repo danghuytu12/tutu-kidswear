@@ -25,6 +25,12 @@ import {
 import { OrderStatusSelect } from "@/components/OrderStatusSelect";
 import { DeleteOrderButton } from "@/components/DeleteOrderButton";
 import { PaymentProofCell } from "@/components/PaymentProofCell";
+import {
+  CardEmpty,
+  CardField,
+  MobileCard,
+  MobileCardList,
+} from "@/components/MobileCard";
 
 const COLUMNS = [
   "Mã đơn",
@@ -89,7 +95,9 @@ export function OrdersTable({
 
   function toggleAll() {
     setSelected((cur) =>
-      cur.size === orders.length ? new Set() : new Set(orders.map((o) => o._id)),
+      cur.size === orders.length
+        ? new Set()
+        : new Set(orders.map((o) => o._id)),
     );
   }
 
@@ -117,7 +125,7 @@ export function OrdersTable({
     <>
       {/* Bulk action bar — shown once at least one order is selected. */}
       {someSelected ? (
-        <div className="flex items-center justify-between gap-3 border-b border-[#E4E7EC] bg-[#F9FAFB] px-5 py-3">
+        <div className="flex flex-col gap-2 border-b border-[#E4E7EC] bg-[#F9FAFB] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <span className="text-sm text-[#344054]">
             Đã chọn <strong>{selected.size}</strong> đơn hàng
           </span>
@@ -141,137 +149,254 @@ export function OrdersTable({
         </div>
       ) : null}
 
-      <Table>
-        <TableHeader>
-          <TableRow className="border-[#E4E7EC] hover:bg-transparent">
-            <TableHead className="w-10">
-              <input
-                type="checkbox"
-                aria-label="Chọn tất cả đơn hàng"
-                checked={allSelected}
-                onChange={toggleAll}
-                disabled={orders.length === 0}
-                className="h-4 w-4 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
-              />
-            </TableHead>
-            {COLUMNS.map((label) => (
-              <TableHead key={label} className="text-[#344054]">
-                {label}
+      <div className="hidden lg:block">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-[#E4E7EC] hover:bg-transparent">
+              <TableHead className="w-10">
+                <input
+                  type="checkbox"
+                  aria-label="Chọn tất cả đơn hàng"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  disabled={orders.length === 0}
+                  className="h-4 w-4 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
+                />
               </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {orders.length === 0 ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={COLUMNS.length + 1} className="py-16 text-center">
-                <p className="text-sm text-[#667085]">
-                  {query
-                    ? `Không tìm thấy đơn hàng nào khớp "${query}".`
-                    : "Chưa có đơn hàng nào."}
-                </p>
-              </TableCell>
+              {COLUMNS.map((label) => (
+                <TableHead key={label} className="text-[#344054]">
+                  {label}
+                </TableHead>
+              ))}
             </TableRow>
-          ) : null}
+          </TableHeader>
+          <TableBody>
+            {orders.length === 0 ? (
+              <TableRow className="hover:bg-transparent">
+                <TableCell
+                  colSpan={COLUMNS.length + 1}
+                  className="py-16 text-center"
+                >
+                  <p className="text-sm text-[#667085]">
+                    {query
+                      ? `Không tìm thấy đơn hàng nào khớp "${query}".`
+                      : "Chưa có đơn hàng nào."}
+                  </p>
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {orders.map((o) => {
+              const isSel = selected.has(o._id);
+              return (
+                <TableRow
+                  key={o._id}
+                  data-state={isSel ? "selected" : undefined}
+                  className="border-[#E4E7EC] hover:bg-gray-50 data-[state=selected]:bg-[#EEF4FF]"
+                >
+                  <TableCell>
+                    <input
+                      type="checkbox"
+                      aria-label={`Chọn đơn ${orderCode(o._id)}`}
+                      checked={isSel}
+                      onChange={() => toggleOne(o._id)}
+                      className="h-4 w-4 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
+                    />
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <span className="font-mono text-sm font-medium text-[#344054]">
+                      {orderCode(o._id)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-[#344054]">
+                        {o.customerName}
+                      </span>
+                      <span className="text-xs text-[#667085]">
+                        {o.customerPhone}
+                      </span>
+                      {o.customerEmail ? (
+                        <span className="text-xs text-[#667085]">
+                          {o.customerEmail}
+                        </span>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                  <TableCell className="min-w-[260px]">
+                    <ul className="space-y-2">
+                      {o.items.map((it, i) => (
+                        <li
+                          key={`${o._id}-${i}`}
+                          className="flex items-center gap-2.5"
+                        >
+                          {it.img ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={it.img}
+                              alt={it.name}
+                              className="h-10 w-10 flex-none rounded-md object-cover"
+                            />
+                          ) : (
+                            <span className="h-10 w-10 flex-none rounded-md bg-[#F2F4F7]" />
+                          )}
+                          <span className="text-sm text-[#667085]">
+                            {it.name}{" "}
+                            <span className="text-[#98A2B3]">×{it.qty}</span>
+                            {[it.size, it.color].some(Boolean) ? (
+                              <span className="ml-1 rounded bg-[#F2F4F7] px-1.5 py-0.5 text-xs text-[#475467]">
+                                {[it.size, it.color]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+                              </span>
+                            ) : null}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {o.note ? (
+                      <p className="mt-1 text-xs italic text-[#98A2B3]">
+                        Ghi chú: {o.note}
+                      </p>
+                    ) : null}
+                  </TableCell>
+                  <TableCell>
+                    <span className="block max-w-[220px] text-sm text-[#667085]">
+                      {fullAddress(o)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <span className="text-sm text-[#667085]">
+                      {o.paymentMethod === "qr" ? "Chuyển khoản QR" : "COD"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <PaymentProofCell proof={o.paymentProof} />
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <OrderStatusSelect id={o._id} status={o.status} />
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <span className="text-sm font-medium text-[#344054]">
+                      {formatVnd(o.total)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <span className="text-sm text-[#667085]">
+                      {formatDate(o.createdAt)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <DeleteOrderButton id={o._id} />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      {orders.length === 0 ? (
+        <CardEmpty>
+          {query
+            ? `Không tìm thấy đơn hàng nào khớp "${query}".`
+            : "Chưa có đơn hàng nào."}
+        </CardEmpty>
+      ) : (
+        <MobileCardList>
           {orders.map((o) => {
             const isSel = selected.has(o._id);
             return (
-              <TableRow
+              <MobileCard
                 key={o._id}
-                data-state={isSel ? "selected" : undefined}
-                className="border-[#E4E7EC] hover:bg-gray-50 data-[state=selected]:bg-[#EEF4FF]"
+                className={isSel ? "bg-[#EEF4FF]" : undefined}
               >
-                <TableCell>
+                <div className="flex items-start gap-3">
                   <input
                     type="checkbox"
                     aria-label={`Chọn đơn ${orderCode(o._id)}`}
                     checked={isSel}
                     onChange={() => toggleOne(o._id)}
-                    className="h-4 w-4 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
+                    className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
                   />
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <span className="font-mono text-sm font-medium text-[#344054]">
+                  <span className="font-mono text-sm font-semibold text-[#1D2939]">
                     {orderCode(o._id)}
                   </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-[#344054]">
-                      {o.customerName}
-                    </span>
-                    <span className="text-xs text-[#667085]">{o.customerPhone}</span>
-                    {o.customerEmail ? (
-                      <span className="text-xs text-[#667085]">{o.customerEmail}</span>
-                    ) : null}
-                  </div>
-                </TableCell>
-                <TableCell className="min-w-[260px]">
-                  <ul className="space-y-2">
-                    {o.items.map((it, i) => (
-                      <li key={`${o._id}-${i}`} className="flex items-center gap-2.5">
-                        {it.img ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={it.img}
-                            alt={it.name}
-                            className="h-10 w-10 flex-none rounded-md object-cover"
-                          />
-                        ) : (
-                          <span className="h-10 w-10 flex-none rounded-md bg-[#F2F4F7]" />
-                        )}
-                        <span className="text-sm text-[#667085]">
-                          {it.name}{" "}
-                          <span className="text-[#98A2B3]">×{it.qty}</span>
-                          {[it.size, it.color].some(Boolean) ? (
-                            <span className="ml-1 rounded bg-[#F2F4F7] px-1.5 py-0.5 text-xs text-[#475467]">
-                              {[it.size, it.color].filter(Boolean).join(" · ")}
-                            </span>
-                          ) : null}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  {o.note ? (
-                    <p className="mt-1 text-xs italic text-[#98A2B3]">
-                      Ghi chú: {o.note}
-                    </p>
-                  ) : null}
-                </TableCell>
-                <TableCell>
-                  <span className="block max-w-[220px] text-sm text-[#667085]">
-                    {fullAddress(o)}
-                  </span>
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <span className="text-sm text-[#667085]">
-                    {o.paymentMethod === "qr" ? "Chuyển khoản QR" : "COD"}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <PaymentProofCell proof={o.paymentProof} />
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <OrderStatusSelect id={o._id} status={o.status} />
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <span className="text-sm font-medium text-[#344054]">
+                  <span className="ml-auto text-sm font-semibold text-[#1D2939]">
                     {formatVnd(o.total)}
                   </span>
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <span className="text-sm text-[#667085]">
-                    {formatDate(o.createdAt)}
+                </div>
+
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-[#344054]">
+                    {o.customerName}
                   </span>
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <DeleteOrderButton id={o._id} />
-                </TableCell>
-              </TableRow>
+                  <span className="text-xs text-[#667085]">
+                    {o.customerPhone}
+                  </span>
+                  {o.customerEmail ? (
+                    <span className="text-xs text-[#667085]">
+                      {o.customerEmail}
+                    </span>
+                  ) : null}
+                </div>
+
+                <ul className="space-y-2 border-y border-[#F2F4F7] py-3">
+                  {o.items.map((it, i) => (
+                    <li
+                      key={`${o._id}-m-${i}`}
+                      className="flex items-center gap-2.5"
+                    >
+                      {it.img ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={it.img}
+                          alt={it.name}
+                          className="h-10 w-10 flex-none rounded-md object-cover"
+                        />
+                      ) : (
+                        <span className="h-10 w-10 flex-none rounded-md bg-[#F2F4F7]" />
+                      )}
+                      <span className="text-sm text-[#667085]">
+                        {it.name}{" "}
+                        <span className="text-[#98A2B3]">×{it.qty}</span>
+                        {[it.size, it.color].some(Boolean) ? (
+                          <span className="ml-1 rounded bg-[#F2F4F7] px-1.5 py-0.5 text-xs text-[#475467]">
+                            {[it.size, it.color].filter(Boolean).join(" · ")}
+                          </span>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {o.note ? (
+                  <p className="text-xs italic text-[#98A2B3]">
+                    Ghi chú: {o.note}
+                  </p>
+                ) : null}
+
+                <CardField label="Địa chỉ">{fullAddress(o)}</CardField>
+                <CardField label="Thanh toán">
+                  {o.paymentMethod === "qr" ? "Chuyển khoản QR" : "COD"}
+                </CardField>
+                <CardField label="Biên lai">
+                  <PaymentProofCell proof={o.paymentProof} />
+                </CardField>
+                <CardField label="Ngày đặt">
+                  {formatDate(o.createdAt)}
+                </CardField>
+
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <OrderStatusSelect id={o._id} status={o.status} />
+                  <DeleteOrderButton
+                    id={o._id}
+                    className="h-10 w-10 border border-[#FDA29B]"
+                  />
+                </div>
+              </MobileCard>
             );
           })}
-        </TableBody>
-      </Table>
+        </MobileCardList>
+      )}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
