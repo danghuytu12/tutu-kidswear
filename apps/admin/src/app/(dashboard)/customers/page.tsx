@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@repo/ui/components/ui/table";
 import { Pagination, PAGE_SIZE, parsePage } from "@/components/Pagination";
+import { CustomerImport } from "@/components/CustomerImport";
 import {
   CardEmpty,
   CardField,
@@ -28,14 +29,38 @@ function formatVnd(price: number): string {
 }
 
 // Format an ISO date -> "01 Dec, 2027" (admin-facing).
+/** Imported customers who have not ordered yet have no date — show a dash. */
 function formatDate(iso: string): string {
+  if (!iso) return "—";
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
+  if (Number.isNaN(d.getTime())) return "—";
   return d.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
+}
+
+const ORIGIN_LABELS = {
+  order: "Từ đơn hàng",
+  import: "Nhập từ file",
+  both: "Cả hai",
+} as const;
+
+const ORIGIN_STYLES = {
+  order: "bg-[#F2F4F7] text-[#344054]",
+  import: "bg-[#EEF4FF] text-[#3538CD]",
+  both: "bg-[#ECFDF3] text-[#027A48]",
+} as const;
+
+function OriginBadge({ origin }: { origin: CustomerWithPurchases["origin"] }) {
+  return (
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${ORIGIN_STYLES[origin]}`}
+    >
+      {ORIGIN_LABELS[origin]}
+    </span>
+  );
 }
 
 async function loadCustomers(): Promise<CustomerWithPurchases[]> {
@@ -73,6 +98,8 @@ export default async function CustomersPage({
         </div>
       </div>
 
+      <CustomerImport />
+
       <div className="overflow-hidden rounded-xl border border-[#E4E7EC] bg-white">
         <div className="flex flex-col justify-between gap-5 border-b border-[#E4E7EC] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
           <div>
@@ -92,6 +119,7 @@ export default async function CustomersPage({
               <TableRow className="border-[#E4E7EC] hover:bg-transparent">
                 {[
                   "Khách hàng",
+                  "Nguồn",
                   "Sản phẩm đã mua",
                   "Tổng SL",
                   "Số đơn",
@@ -107,7 +135,7 @@ export default async function CustomersPage({
             <TableBody>
               {customers.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={6} className="py-16 text-center">
+                  <TableCell colSpan={7} className="py-16 text-center">
                     <p className="text-sm text-[#667085]">
                       Chưa có khách hàng nào mua hàng.
                     </p>
@@ -126,6 +154,9 @@ export default async function CustomersPage({
                       </span>
                       <span className="text-xs text-[#667085]">{c.phone}</span>
                     </div>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <OriginBadge origin={c.origin} />
                   </TableCell>
                   <TableCell className="min-w-[280px]">
                     <ul className="space-y-1">
@@ -179,6 +210,9 @@ export default async function CustomersPage({
                     {c.name}
                   </span>
                   <span className="text-xs text-[#667085]">{c.phone}</span>
+                  <span className="mt-1">
+                    <OriginBadge origin={c.origin} />
+                  </span>
                 </div>
 
                 <ul className="space-y-1 border-y border-[#F2F4F7] py-3">
