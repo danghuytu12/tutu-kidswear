@@ -11,6 +11,7 @@ import {
 } from "@/components/pdp/ProductDetail";
 import { ProductDescription } from "@/components/pdp/ProductDescription";
 import { ProductReviews } from "@/components/pdp/ProductReviews";
+import { hasStock } from "@repo/ui/lib/db/types";
 import { SimilarProducts } from "@/components/pdp/SimilarProducts";
 import { pdpProduct, teeProducts } from "@repo/ui/lib/products";
 import { getProductDocByHref, getCatalog, slice } from "@/lib/catalog";
@@ -118,7 +119,11 @@ export default async function ProductPage({ params }: Params) {
               images: galleryOf(doc),
               href: doc.href,
               price: doc.price,
-              inStock: doc.inStock,
+              // Real availability once any variant is tracked, falling back to
+              // the publish flag for products with no stock recorded yet. The
+              // old `inStock` field only ever meant Draft/Publish; it reached
+              // this Google-facing signal by accident.
+              inStock: hasStock(doc),
               category: doc.category,
             })}
           />

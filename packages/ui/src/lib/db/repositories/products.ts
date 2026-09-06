@@ -52,6 +52,50 @@ function derivePricing(
 }
 
 /**
+ * Identity of a variant for matching: colour+size, trimmed and case-folded.
+ *
+ * Case-folded because both are free-text admin inputs. Retyping "Màu Đen" over
+ * "MÀU ĐEN" is an edit to the same variant, and a case-sensitive key would treat
+ * it as a new one — orphaning that variant's stock into a row nobody counted.
+ */
+export function variantKey(v: Pick<ProductVariant, "color" | "size">): string {
+  return `${v.color.trim().toLowerCase()}|${v.size.trim().toLowerCase()}`;
+}
+
+/**
+ * Re-attach stored stock to the variants coming back from the admin form.
+ *
+ * The form round-trips variants as {color,size,sellPrice} only, and updates
+ * `$set` the whole array — so without this, saving a product for any reason at
+ * all (even editing only its description) would erase every variant's stock.
+ * Fixing it here rather than in the form is deliberate: a browser tab opened
+ * before the change would still post the old shape and still destroy inventory.
+ *
+ * Stock is owned by the inventory primitives and is never writable through the
+ * product form, so the payload's own stock values are ignored outright.
+ */
+function mergeVariantStock(
+  incoming: ProductVariant[],
+  stored: ProductVariant[],
+): ProductVariant[] {
+  const byKey = new Map(stored.map((v) => [variantKey(v), v]));
+  return incoming.map((v) => {
+    const prev = byKey.get(variantKey(v));
+    // A newly added colour/size has no stock yet. Left absent rather than set to
+    // 0 so it reads as "chưa nhập kho" and does not block a sale.
+    const { stock: _ignored, lowStockThreshold: _alsoIgnored, ...rest } = v;
+    if (!prev) return rest;
+    return {
+      ...rest,
+      ...(prev.stock !== undefined ? { stock: prev.stock } : {}),
+      ...(prev.lowStockThreshold !== undefined
+        ? { lowStockThreshold: prev.lowStockThreshold }
+        : {}),
+    };
+  });
+}
+
+/**
  * Normalize an incoming product payload: recompute derived pricing + thumbnail
  * from `variants`/`discountPct`/`images` so the stored doc is self-consistent.
  */
@@ -129,11 +173,19 @@ export async function updateProduct(
 ): Promise<ProductDoc | null> {
   if (!ObjectId.isValid(id)) return null;
   const col = await productsCollection();
+  let patch: Partial<ProductInput> = input;
   // When variants are part of the update, recompute derived pricing/thumbnail
-  // so stored fields stay consistent with the variant source of truth.
-  const patch = input.variants
-    ? normalizeProductInput(input as ProductInput)
-    : input;
+  // so stored fields stay consistent with the variant source of truth — and
+  // carry stock over from the stored document, which the payload does not have.
+  if (input.variants) {
+    const stored = await col.findOne({ _id: new ObjectId(id) });
+    if (!stored) return null;
+    const merged = mergeVariantStock(
+      input.variants,
+      (stored.variants ?? []) as ProductVariant[],
+    );
+    patch = normalizeProductInput({ ...(input as ProductInput), variants: merged });
+  }
   const doc = await col.findOneAndUpdate(
     { _id: new ObjectId(id) },
     { $set: patch },
