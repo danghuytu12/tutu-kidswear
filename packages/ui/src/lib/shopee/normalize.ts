@@ -39,12 +39,21 @@ export function parseText(raw: RawCell): string {
  * rightmost separator is treated as a decimal point only when it is the sole
  * occurrence of that character AND is followed by one or two digits; otherwise
  * both characters are grouping separators. Unparseable input yields 0.
+ *
+ * Accounting-style negatives — "(1.234)" for −1234 — are recognised too. The
+ * settlement exports state fees as deductions, and a stray positive where a
+ * negative belongs flips the sign of a whole payout, so the parentheses have to
+ * be read before the strip below discards them.
  */
 export function parseMoney(raw: RawCell): number {
   if (typeof raw === "number") {
     return Number.isFinite(raw) ? Math.round(raw) : 0;
   }
-  const s = cellToString(raw).replace(/[^\d.,-]/g, "");
+  const text = cellToString(raw);
+  // Checked on the raw text: the strip below removes the parentheses, and a
+  // minus sign inside them would be double-counted rather than doubled back.
+  const parenthesised = /^\s*\(\s*[^()]*\d[^()]*\)\s*$/.test(text);
+  const s = text.replace(/[^\d.,-]/g, "");
   if (!s) return 0;
 
   const lastDot = s.lastIndexOf(".");
@@ -61,8 +70,10 @@ export function parseMoney(raw: RawCell): number {
   const intPart = (decimalAt >= 0 ? s.slice(0, decimalAt) : s).replace(/[.,]/g, "");
   const fracPart = decimalAt >= 0 ? s.slice(decimalAt + 1) : "";
   const n = Number(fracPart ? `${intPart}.${fracPart}` : intPart);
+  if (!Number.isFinite(n)) return 0;
   // VND has no minor unit; round so a "1.234.567,50" style cell stays whole.
-  return Number.isFinite(n) ? Math.round(n) : 0;
+  const rounded = Math.round(n);
+  return parenthesised ? -Math.abs(rounded) : rounded;
 }
 
 /** Parse an integer count (quantity). Unparseable input yields 0. */

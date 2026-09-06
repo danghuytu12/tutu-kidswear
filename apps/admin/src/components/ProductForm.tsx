@@ -406,7 +406,7 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
       sale: "",
       category: category || "Bé Trai",
       price: 0,
-      inStock: status === "publish",
+      published: status === "publish",
       variants: cleanVariants,
       buyPrice: toNumber(buyPrice),
       facebookPrice: toNumber(facebookPrice),

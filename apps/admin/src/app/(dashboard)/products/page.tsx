@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { listProducts } from "@repo/ui/lib/db/repositories/products";
 import { formatVnd } from "@repo/ui/lib/cart";
-import type { ProductDoc } from "@repo/ui/lib/db/types";
+import { isPublished, type ProductDoc } from "@repo/ui/lib/db/types";
 import { DeleteProductButton } from "@/components/DeleteProductButton";
 import { Pagination, PAGE_SIZE, parsePage } from "@/components/Pagination";
 import {
@@ -36,7 +36,7 @@ type ProductRow = {
     shopee: string;
     tiktok: string;
   };
-  inStock: boolean;
+  published: boolean;
   date: string;
 };
 
@@ -68,7 +68,7 @@ function toRow(doc: ProductDoc): ProductRow {
       shopee: priceText(doc.shopeePrice),
       tiktok: priceText(doc.tiktokPrice),
     },
-    inStock: doc.inStock,
+    published: isPublished(doc),
     date: formatDate(doc.createdAt),
   };
 }
@@ -88,7 +88,7 @@ const SORTABLE_COLUMNS = [
   "Products",
   "Category",
   "Giá",
-  "Stock",
+  "Trạng thái",
   "Created At",
 ] as const;
 
@@ -251,12 +251,12 @@ export default async function ProductsPage({
                   <td className="px-5 py-4 whitespace-nowrap">
                     <span
                       className={
-                        p.inStock
+                        p.published
                           ? "inline-flex rounded-full bg-[#ECFDF3] px-2 py-0.5 text-xs font-medium text-[#027A48]"
                           : "inline-flex rounded-full bg-[#FEF3F2] px-2 py-0.5 text-xs font-medium text-[#B42318]"
                       }
                     >
-                      {p.inStock ? "In Stock" : "Out of Stock"}
+                      {p.published ? "Đã đăng" : "Nháp"}
                     </span>
                   </td>
                   <td className="px-5 py-4 whitespace-nowrap">
@@ -305,12 +305,12 @@ export default async function ProductsPage({
                     </p>
                     <span
                       className={
-                        p.inStock
+                        p.published
                           ? "mt-1 inline-flex rounded-full bg-[#ECFDF3] px-2 py-0.5 text-xs font-medium text-[#027A48]"
                           : "mt-1 inline-flex rounded-full bg-[#FEF3F2] px-2 py-0.5 text-xs font-medium text-[#B42318]"
                       }
                     >
-                      {p.inStock ? "In Stock" : "Out of Stock"}
+                      {p.published ? "Đã đăng" : "Nháp"}
                     </span>
                   </div>
                 </div>

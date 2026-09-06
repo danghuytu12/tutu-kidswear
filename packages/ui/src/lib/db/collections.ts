@@ -27,3 +27,8 @@ export async function shopeeOrderRowsCollection(): Promise<Collection<Document>>
 export async function shopeeImportsCollection(): Promise<Collection<Document>> {
   return (await getDb()).collection("shopeeImports");
 }
+
+/** Audit trail of every stock change. Never the source of truth for current stock. */
+export async function stockMovementsCollection(): Promise<Collection<Document>> {
+  return (await getDb()).collection("stockMovements");
+}

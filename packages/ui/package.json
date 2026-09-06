@@ -15,7 +15,8 @@
     "./lib/date/*": "./src/lib/date/*.ts",
     "./lib/shopee/*": "./src/lib/shopee/*.ts",
     "./lib/customers/*": "./src/lib/customers/*.ts",
-    "./lib/address/*": "./src/lib/address/*.ts"
+    "./lib/address/*": "./src/lib/address/*.ts",
+    "./lib/settlements/*": "./src/lib/settlements/*.ts"
   },
   "scripts": {
     "lint": "eslint src",
