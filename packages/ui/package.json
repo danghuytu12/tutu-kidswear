@@ -14,7 +14,8 @@
     "./lib/notify/*": "./src/lib/notify/*.ts",
     "./lib/date/*": "./src/lib/date/*.ts",
     "./lib/shopee/*": "./src/lib/shopee/*.ts",
-    "./lib/customers/*": "./src/lib/customers/*.ts"
+    "./lib/customers/*": "./src/lib/customers/*.ts",
+    "./lib/address/*": "./src/lib/address/*.ts"
   },
   "scripts": {
     "lint": "eslint src",

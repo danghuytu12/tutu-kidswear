@@ -9,10 +9,12 @@ import type { OrderInput } from "@repo/ui/lib/db/types";
 import { MotionButton } from "@repo/ui/components/motion";
 import { QrPaymentModal } from "./QrPaymentModal";
 import { Spinner } from "@repo/ui/components/Spinner";
+import { PROVINCES, wardsOfProvince } from "@repo/ui/lib/address/vn";
 
 const inputClass =
   "rounded-full border border-black/15 px-5 py-3 text-[15px] w-full outline-none focus:border-[#b08560] placeholder:text-black/40";
 const labelClass = "text-[14px] text-black mb-1 block";
+const selectClass = `${inputClass} min-w-0 appearance-none bg-white disabled:bg-black/[0.03] disabled:text-black/40`;
 
 type Payment = "cod" | "qr";
 
@@ -25,10 +27,15 @@ export function OrderForm() {
   const [payment, setPayment] = useState<Payment>("cod");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [province, setProvince] = useState("");
+  const [ward, setWard] = useState("");
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+
+  // Wards depend on the chosen province; empty until one is picked.
+  const wards = province ? wardsOfProvince(province) : [];
 
   // Grand total the customer pays (and must transfer for QR) — items + shipping.
   const orderTotal = totalPrice + shippingFee(totalQty);
@@ -39,6 +46,13 @@ export function OrderForm() {
       toast.error(
         "Thiếu thông tin",
         "Vui lòng nhập Họ tên, Số điện thoại và Địa chỉ.",
+      );
+      return false;
+    }
+    if (!province || !ward) {
+      toast.error(
+        "Thiếu địa chỉ",
+        "Vui lòng chọn Tỉnh/Thành phố và Phường/Xã.",
       );
       return false;
     }
@@ -75,9 +89,11 @@ export function OrderForm() {
       customerName: name.trim(),
       customerPhone: phone.trim(),
       address: address.trim(),
-      province: "",
+      province,
+      // The 2025 reorganisation removed the district level; the field is kept
+      // for older orders and left blank on new ones.
       district: "",
-      ward: "",
+      ward,
       note: note.trim(),
       paymentMethod: payment,
       ...(proof ? { paymentProof: proof } : {}),
@@ -149,11 +165,52 @@ export function OrderForm() {
           />
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="min-w-0">
+            <label className={labelClass}>Tỉnh/Thành phố *</label>
+            <select
+              className={selectClass}
+              value={province}
+              onChange={(e) => {
+                setProvince(e.target.value);
+                // The old ward belongs to the old province — never carry it over.
+                setWard("");
+              }}
+            >
+              <option value="">Chọn Tỉnh/Thành phố</option>
+              {PROVINCES.map((p) => (
+                <option key={p.code} value={p.name}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="min-w-0">
+            <label className={labelClass}>Phường/Xã *</label>
+            <select
+              className={selectClass}
+              value={ward}
+              disabled={!province}
+              onChange={(e) => setWard(e.target.value)}
+            >
+              <option value="">
+                {province ? "Chọn Phường/Xã" : "Chọn Tỉnh/Thành phố trước"}
+              </option>
+              {wards.map((w) => (
+                <option key={w.code} value={w.name}>
+                  {w.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         <div>
           <label className={labelClass}>Địa chỉ *</label>
           <input
             className={inputClass}
-            placeholder="Địa chỉ ( VD: 532 Nguyễn Văn Cừ, Phường 1, Quận 5, TP.HCM )"
+            placeholder="Số nhà, tên đường ( VD: 532 Nguyễn Văn Cừ )"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
           />

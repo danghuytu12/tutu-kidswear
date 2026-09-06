@@ -9,6 +9,7 @@ import {
   sendOrderStatusToTelegram,
 } from "@repo/ui/lib/notify/telegram";
 import { ORDER_STATUSES, type OrderDoc } from "@repo/ui/lib/db/types";
+import { requireSession } from "@/lib/require-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +22,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     const body = (await request.json()) as { status?: unknown };
@@ -54,9 +58,12 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   try {
     const { id } = await params;
     // Fetch the order first so the notification has its details after deletion.

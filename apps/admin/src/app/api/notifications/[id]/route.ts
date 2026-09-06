@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { markOrderRead } from "@repo/ui/lib/db/repositories/orders";
+import { requireSession } from "@/lib/require-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function PATCH(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   const { id } = await params;
   try {
     const ok = await markOrderRead(id);

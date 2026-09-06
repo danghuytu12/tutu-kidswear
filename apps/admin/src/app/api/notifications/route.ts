@@ -3,11 +3,15 @@ import {
   listUnreadOrders,
   countUnreadOrders,
 } from "@repo/ui/lib/db/repositories/orders";
+import { requireSession } from "@/lib/require-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   try {
     const [count, unread] = await Promise.all([
       countUnreadOrders(),

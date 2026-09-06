@@ -5,11 +5,15 @@ import {
   getOrderById,
 } from "@repo/ui/lib/db/repositories/orders";
 import { sendOrderDeletedToTelegram } from "@repo/ui/lib/notify/telegram";
+import { requireSession } from "@/lib/require-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   try {
     const orders = await listOrders();
     return NextResponse.json({ orders });
@@ -23,6 +27,9 @@ export async function GET() {
 
 /** Bulk-delete orders. Body: { ids: string[] }. Returns { deleted: number }. */
 export async function DELETE(request: Request) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json().catch(() => ({}))) as { ids?: unknown };
     const ids = Array.isArray(body.ids)
