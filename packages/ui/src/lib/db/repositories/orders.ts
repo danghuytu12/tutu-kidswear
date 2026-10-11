@@ -58,7 +58,14 @@ export async function getOrderById(id: string): Promise<OrderDoc | null> {
   return doc ? toOrderDoc(doc) : null;
 }
 
-export async function createOrder(input: OrderInput): Promise<OrderDoc> {
+/**
+ * Insert an order. `id` lets the caller choose the ObjectId up front, so stock
+ * can be reserved (and its ledger rows tagged) before the order exists.
+ */
+export async function createOrder(
+  input: OrderInput,
+  id: ObjectId = new ObjectId(),
+): Promise<OrderDoc> {
   const col = await ordersCollection();
   const itemsTotal = input.items.reduce((sum, i) => sum + i.price * i.qty, 0);
   const totalQty = input.items.reduce((sum, i) => sum + i.qty, 0);
@@ -79,8 +86,8 @@ export async function createOrder(input: OrderInput): Promise<OrderDoc> {
     read: false,
     createdAt: new Date().toISOString(),
   };
-  const result = await col.insertOne(toInsert);
-  return { _id: String(result.insertedId), ...toInsert };
+  await col.insertOne({ _id: id, ...toInsert });
+  return { _id: id.toHexString(), ...toInsert };
 }
 
 export async function updateOrderStatus(
@@ -92,6 +99,26 @@ export async function updateOrderStatus(
   const doc = await col.findOneAndUpdate(
     { _id: new ObjectId(id) },
     { $set: { status } },
+    { returnDocument: "after" },
+  );
+  return doc ? toOrderDoc(doc) : null;
+}
+
+/**
+ * Change status only if it is still `from` — a compare-and-swap, so two admins
+ * flipping the same order at once can't both apply the stock side effect.
+ * Returns null when the order is missing or its status already moved on.
+ */
+export async function transitionOrderStatus(
+  id: string,
+  from: OrderDoc["status"],
+  to: OrderDoc["status"],
+): Promise<OrderDoc | null> {
+  if (!ObjectId.isValid(id)) return null;
+  const col = await ordersCollection();
+  const doc = await col.findOneAndUpdate(
+    { _id: new ObjectId(id), status: from },
+    { $set: { status: to } },
     { returnDocument: "after" },
   );
   return doc ? toOrderDoc(doc) : null;

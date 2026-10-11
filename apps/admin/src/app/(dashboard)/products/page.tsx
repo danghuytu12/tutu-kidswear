@@ -10,7 +10,12 @@ import {
 } from "lucide-react";
 import { listProducts } from "@repo/ui/lib/db/repositories/products";
 import { formatVnd } from "@repo/ui/lib/cart";
-import { isPublished, type ProductDoc } from "@repo/ui/lib/db/types";
+import {
+  DEFAULT_LOW_STOCK_THRESHOLD,
+  isPublished,
+  isStockTracked,
+  type ProductDoc,
+} from "@repo/ui/lib/db/types";
 import { DeleteProductButton } from "@/components/DeleteProductButton";
 import { Pagination, PAGE_SIZE, parsePage } from "@/components/Pagination";
 import {
@@ -37,7 +42,34 @@ type ProductRow = {
   };
   published: boolean;
   date: string;
+  /** Units on hand across tracked variants; null when none is tracked yet. */
+  stock: number | null;
+  /** Some tracked variant is at/below its threshold (or out). */
+  stockLow: boolean;
 };
+
+function StockBadge({ stock, low }: { stock: number | null; low: boolean }) {
+  if (stock === null) {
+    return (
+      <span className="inline-flex rounded-full bg-[#F2F4F7] px-2 py-0.5 text-xs font-medium text-[#667085]">
+        Chưa nhập kho
+      </span>
+    );
+  }
+  return (
+    <span
+      className={
+        stock === 0
+          ? "inline-flex rounded-full bg-[#FEF3F2] px-2 py-0.5 text-xs font-medium text-[#B42318]"
+          : low
+            ? "inline-flex rounded-full bg-[#FFFAEB] px-2 py-0.5 text-xs font-medium text-[#B54708]"
+            : "inline-flex rounded-full bg-[#ECFDF3] px-2 py-0.5 text-xs font-medium text-[#027A48]"
+      }
+    >
+      {stock === 0 ? "Hết hàng" : `Tồn ${stock}`}
+    </span>
+  );
+}
 
 // Format an ISO date -> "01/12/2027".
 function formatDate(iso: string): string {
@@ -55,6 +87,17 @@ function priceText(value: number | undefined): string {
   return typeof value === "number" ? formatVnd(value) : "—";
 }
 
+function stockSummary(doc: ProductDoc): Pick<ProductRow, "stock" | "stockLow"> {
+  const tracked = (doc.variants ?? []).filter(isStockTracked);
+  if (tracked.length === 0) return { stock: null, stockLow: false };
+  return {
+    stock: tracked.reduce((sum, v) => sum + (v.stock ?? 0), 0),
+    stockLow: tracked.some(
+      (v) => (v.stock ?? 0) <= (v.lowStockThreshold ?? DEFAULT_LOW_STOCK_THRESHOLD),
+    ),
+  };
+}
+
 function toRow(doc: ProductDoc): ProductRow {
   return {
     id: doc._id,
@@ -69,6 +112,7 @@ function toRow(doc: ProductDoc): ProductRow {
     },
     published: isPublished(doc),
     date: formatDate(doc.createdAt),
+    ...stockSummary(doc),
   };
 }
 
@@ -87,6 +131,7 @@ const SORTABLE_COLUMNS = [
   "Sản phẩm",
   "Danh mục",
   "Giá",
+  "Tồn kho",
   "Trạng thái",
   "Ngày tạo",
 ] as const;
@@ -203,7 +248,7 @@ export default async function ProductsPage({
             <tbody>
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-16 text-center">
+                  <td colSpan={9} className="px-5 py-16 text-center">
                     <p className="text-sm text-[#667085]">
                       Chưa có sản phẩm nào. Nhấn{" "}
                       <span className="font-medium text-[#1D2939]">
@@ -251,6 +296,9 @@ export default async function ProductsPage({
                         </div>
                       ))}
                     </dl>
+                  </td>
+                  <td className="px-5 py-4 whitespace-nowrap">
+                    <StockBadge stock={p.stock} low={p.stockLow} />
                   </td>
                   <td className="px-5 py-4 whitespace-nowrap">
                     <span
@@ -317,6 +365,7 @@ export default async function ProductsPage({
                       >
                         {p.published ? "Đã đăng" : "Nháp"}
                       </span>
+                      <StockBadge stock={p.stock} low={p.stockLow} />
                       {p.category ? <span>{p.category}</span> : null}
                       {p.date ? <span>· {p.date}</span> : null}
                     </div>

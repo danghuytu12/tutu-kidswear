@@ -2,14 +2,23 @@ import { NextResponse } from "next/server";
 import {
   deleteOrder,
   getOrderById,
-  updateOrderStatus,
+  transitionOrderStatus,
 } from "@repo/ui/lib/db/repositories/orders";
+import {
+  reserveStockForOrder,
+  restoreStockForOrder,
+} from "@repo/ui/lib/db/repositories/inventory";
 import {
   sendOrderDeletedToTelegram,
   sendOrderStatusToTelegram,
 } from "@repo/ui/lib/notify/telegram";
-import { ORDER_STATUSES, type OrderDoc } from "@repo/ui/lib/db/types";
+import {
+  ORDER_STATUSES,
+  shortageMessage,
+  type OrderDoc,
+} from "@repo/ui/lib/db/types";
 import { requireSession } from "@/lib/require-session";
+import { releaseStockOnDelete } from "@/lib/order-stock";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,20 +43,42 @@ export async function PATCH(
         { status: 400 },
       );
     }
-    // Capture the previous status before updating so the notification can show
-    // the transition (from → to).
     const before = await getOrderById(id);
-    const order = await updateOrderStatus(id, body.status);
-    if (!order) {
+    if (!before) {
       return NextResponse.json(
         { error: "Không tìm thấy đơn hàng" },
         { status: 404 },
       );
     }
-    // Best-effort Telegram notification; never blocks the response on failure.
-    if (before && before.status !== order.status) {
-      await sendOrderStatusToTelegram(order, before.status);
+    if (before.status === body.status) return NextResponse.json({ order: before });
+
+    // Compare-and-swap on the status we just read, so the stock side effect
+    // below runs exactly once even if two admins change the order together.
+    const order = await transitionOrderStatus(id, before.status, body.status);
+    if (!order) {
+      return NextResponse.json(
+        { error: "Đơn hàng vừa được cập nhật ở nơi khác, vui lòng tải lại." },
+        { status: 409 },
+      );
     }
+
+    // Stock follows the cancelled boundary: cancelling gives the units back,
+    // un-cancelling takes them again (and is refused if they're gone).
+    if (body.status === "cancelled") {
+      await restoreStockForOrder(order.items, id, "cancel");
+    } else if (before.status === "cancelled") {
+      const reserved = await reserveStockForOrder(order.items, id, "recancel");
+      if (!reserved.ok) {
+        await transitionOrderStatus(id, body.status, "cancelled");
+        return NextResponse.json(
+          { error: shortageMessage(reserved.shortages) },
+          { status: 409 },
+        );
+      }
+    }
+
+    // Best-effort Telegram notification; never blocks the response on failure.
+    await sendOrderStatusToTelegram(order, before.status);
     return NextResponse.json({ order });
   } catch {
     return NextResponse.json(
@@ -76,6 +107,7 @@ export async function DELETE(
       );
     }
     if (order) {
+      await releaseStockOnDelete(order);
       await sendOrderDeletedToTelegram(order);
     }
     return NextResponse.json({ ok: true });

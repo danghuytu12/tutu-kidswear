@@ -11,7 +11,7 @@ import {
 } from "@/components/pdp/ProductDetail";
 import { ProductDescription } from "@/components/pdp/ProductDescription";
 import { ProductReviews } from "@/components/pdp/ProductReviews";
-import { hasStock } from "@repo/ui/lib/db/types";
+import { hasStock, isStockTracked } from "@repo/ui/lib/db/types";
 import { SimilarProducts } from "@/components/pdp/SimilarProducts";
 import { pdpProduct, teeProducts } from "@repo/ui/lib/products";
 import { getProductDocByHref, getCatalog, slice } from "@/lib/catalog";
@@ -96,6 +96,13 @@ export default async function ProductPage({ params }: Params) {
           : undefined,
         description: doc.description || undefined,
         sizeChartImage: doc.sizeChartImage || undefined,
+        // Per-variant stock so sold-out options can be greyed out. null =
+        // not tracked yet, which sells without limit.
+        variants: (doc.variants ?? []).map((v) => ({
+          color: v.color,
+          size: v.size,
+          stock: isStockTracked(v) ? (v.stock ?? 0) : null,
+        })),
       }
     : undefined;
 

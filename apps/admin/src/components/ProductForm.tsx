@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, ChevronDown, Plus, X } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
@@ -291,6 +292,8 @@ type VariantRow = {
   color: string;
   size: string;
   sellPrice: string;
+  /** Read-only: stock is changed on the inventory page, never by this form. */
+  stock?: number;
 };
 
 function emptyVariant(): VariantRow {
@@ -303,6 +306,7 @@ function toVariantRows(variants?: ProductVariant[]): VariantRow[] {
     color: v.color,
     size: v.size,
     sellPrice: String(v.sellPrice),
+    ...(typeof v.stock === "number" ? { stock: v.stock } : {}),
   }));
 }
 
@@ -374,7 +378,11 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
     });
   }
 
-  function setVariantAt(index: number, key: keyof VariantRow, value: string) {
+  function setVariantAt(
+    index: number,
+    key: "color" | "size" | "sellPrice",
+    value: string,
+  ) {
     setVariants((rows) =>
       rows.map((r, i) => (i === index ? { ...r, [key]: value } : r)),
     );
@@ -622,24 +630,31 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
 
             <p className="text-sm text-[#667085]">
               Mỗi dòng là một biến thể của sản phẩm. Giá hiển thị trên
-              storefront lấy từ biến thể đầu tiên.
+              storefront lấy từ biến thể đầu tiên. Tồn kho nhập và kiểm kê ở
+              trang{" "}
+              <Link href="/inventory" className="font-medium text-[#b08560] underline">
+                Kho hàng
+              </Link>
+              .
             </p>
 
             {/* One markup for both layouts: stacked cards on phones/tablets,
                 a 4-column grid (like a table) from lg up. */}
             <div className="space-y-2">
-              <div className="hidden grid-cols-[1fr_1fr_1fr_2.5rem] gap-3 px-1 text-xs font-medium text-[#667085] lg:grid">
+              <div className="hidden grid-cols-[1fr_1fr_1fr_5rem_2.5rem] gap-3 px-1 text-xs font-medium text-[#667085] lg:grid">
                 <span>Màu sắc</span>
                 <span>Kích cỡ</span>
                 <span>Giá bán</span>
+                <span>Tồn kho</span>
               </div>
               {variants.map((v, index) => (
                 <div
                   key={index}
-                  className="relative grid grid-cols-2 gap-2 rounded-xl border border-[#E4E7EC] p-3 lg:grid-cols-[1fr_1fr_1fr_2.5rem] lg:gap-3 lg:rounded-none lg:border-0 lg:p-0"
+                  className="relative grid grid-cols-2 gap-2 rounded-xl border border-[#E4E7EC] p-3 lg:grid-cols-[1fr_1fr_1fr_5rem_2.5rem] lg:gap-3 lg:rounded-none lg:border-0 lg:p-0"
                 >
                   <p className="col-span-2 flex h-8 items-center text-xs font-medium text-[#667085] lg:hidden">
                     Biến thể {index + 1}
+                    {v.stock !== undefined ? ` · Tồn ${v.stock}` : ""}
                   </p>
                   <input
                     aria-label={`Màu sắc biến thể ${index + 1}`}
@@ -667,6 +682,9 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
                       onChange={(value) => setVariantAt(index, "sellPrice", value)}
                     />
                   </div>
+                  <span className="hidden h-11 items-center text-sm tabular-nums text-[#667085] lg:flex">
+                    {v.stock ?? "—"}
+                  </span>
                   <button
                     type="button"
                     aria-label={`Xóa biến thể ${index + 1}`}

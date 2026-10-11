@@ -173,25 +173,45 @@ export async function updateProduct(
 ): Promise<ProductDoc | null> {
   if (!ObjectId.isValid(id)) return null;
   const col = await productsCollection();
-  let patch: Partial<ProductInput> = input;
-  // When variants are part of the update, recompute derived pricing/thumbnail
-  // so stored fields stay consistent with the variant source of truth — and
-  // carry stock over from the stored document, which the payload does not have.
-  if (input.variants) {
+  if (!input.variants) {
+    const doc = await col.findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: input },
+      { returnDocument: "after" },
+    );
+    return doc ? toProductDoc(doc) : null;
+  }
+
+  // Variants are part of the update: recompute derived pricing/thumbnail and
+  // carry stock over from the stored document (the payload has none). The
+  // write is conditional on the variants array being exactly what we merged
+  // from — a sale that decrements stock in between makes it miss and retry,
+  // instead of this $set writing the pre-sale count back.
+  for (let attempt = 0; attempt < 5; attempt++) {
     const stored = await col.findOne({ _id: new ObjectId(id) });
     if (!stored) return null;
-    const merged = mergeVariantStock(
-      input.variants,
-      (stored.variants ?? []) as ProductVariant[],
+    const storedVariants = (stored.variants ?? []) as ProductVariant[];
+    const merged = mergeVariantStock(input.variants, storedVariants);
+    const patch = normalizeProductInput({ ...(input as ProductInput), variants: merged });
+    // Keep the denormalised sum true when a stocked variant is removed.
+    const tracked = merged.filter((v) => typeof v.stock === "number");
+    const update =
+      tracked.length > 0
+        ? {
+            $set: {
+              ...patch,
+              totalStock: tracked.reduce((sum, v) => sum + (v.stock ?? 0), 0),
+            },
+          }
+        : { $set: patch, $unset: { totalStock: "" } };
+    const doc = await col.findOneAndUpdate(
+      { _id: new ObjectId(id), variants: stored.variants ?? { $exists: false } },
+      update,
+      { returnDocument: "after" },
     );
-    patch = normalizeProductInput({ ...(input as ProductInput), variants: merged });
+    if (doc) return toProductDoc(doc);
   }
-  const doc = await col.findOneAndUpdate(
-    { _id: new ObjectId(id) },
-    { $set: patch },
-    { returnDocument: "after" },
-  );
-  return doc ? toProductDoc(doc) : null;
+  throw new Error("Sản phẩm đang được cập nhật tồn kho, vui lòng thử lại.");
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {

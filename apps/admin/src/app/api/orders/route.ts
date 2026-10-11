@@ -6,6 +6,7 @@ import {
 } from "@repo/ui/lib/db/repositories/orders";
 import { sendOrderDeletedToTelegram } from "@repo/ui/lib/notify/telegram";
 import { requireSession } from "@/lib/require-session";
+import { releaseStockOnDelete } from "@/lib/order-stock";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +43,9 @@ export async function DELETE(request: Request) {
     // (sent after the delete succeeds) still have full info to report.
     const orders = await Promise.all(ids.map((id) => getOrderById(id)));
     const deleted = await deleteOrders(ids);
+    for (const order of orders) {
+      if (order) await releaseStockOnDelete(order);
+    }
     // Best-effort Telegram notification per removed order; failures never block
     // the response. Mirrors the single-order DELETE route behaviour.
     await Promise.all(

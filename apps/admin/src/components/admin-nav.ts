@@ -5,11 +5,13 @@ import {
   Users,
   FileSpreadsheet,
   Settings,
+  Warehouse,
 } from "lucide-react";
 
 export const NAV = [
   { label: "Tổng quan", href: "/", icon: LayoutDashboard },
   { label: "Sản phẩm", href: "/products", icon: Package },
+  { label: "Kho hàng", href: "/inventory", icon: Warehouse },
   { label: "Đơn hàng", href: "/orders", icon: ShoppingBag },
   { label: "Khách hàng", href: "/customers", icon: Users },
   { label: "Shopee", href: "/shopee", icon: FileSpreadsheet },
@@ -28,4 +30,4 @@ export function isActive(pathname: string, href: string): boolean {
 }
 
 /** Phone bottom tabs, in thumb-priority order; the rest live under "Thêm". */
-export const MOBILE_TABS = ["/", "/orders", "/products", "/customers"] as const;
+export const MOBILE_TABS = ["/", "/orders", "/products", "/inventory"] as const;

@@ -23,7 +23,7 @@ import {
   type StockMovementDoc,
   type StockReason,
 } from "../types";
-import { getProductByHref } from "./products";
+import { getProductByHref, variantKey } from "./products";
 
 let indexesReady: Promise<void> | null = null;
 
@@ -255,6 +255,7 @@ async function describeShortage(line: StockLine): Promise<InsufficientStock> {
 export async function reserveStockForOrder(
   items: OrderItem[],
   orderId?: string,
+  reason: Extract<StockReason, "sale" | "recancel"> = "sale",
 ): Promise<ReserveResult> {
   const { lines: rawLines, unresolved } = await resolveOrderLines(items);
   const lines = coalesce(rawLines);
@@ -292,7 +293,7 @@ export async function reserveStockForOrder(
     return { ok: false, shortages: [await describeShortage(line)] };
   }
 
-  await logOrderMovements(applied, "sale", orderId);
+  await logOrderMovements(applied, reason, orderId);
   return { ok: true, applied, skipped: unresolved };
 }
 
@@ -400,6 +401,73 @@ export async function restockVariant(params: {
     ...(params.note ? { note: params.note } : {}),
   });
   return { ok: true, stockAfter };
+}
+
+export type SetStockResult =
+  | { ok: true; changed: boolean; stockAfter: number }
+  | { ok: false; reason: "not-found" | "conflict" };
+
+/**
+ * Stocktake (kiểm kê): make one variant's stock exactly `count`.
+ *
+ * The only place an absolute number is legitimate. The write is a
+ * compare-and-swap on the stock value just read, so a sale landing between the
+ * read and the write makes this refuse (`conflict`) instead of silently
+ * resurrecting the units that sale took. The caller retries with a fresh read.
+ */
+export async function setVariantStock(params: {
+  productId: string;
+  color: string;
+  size: string;
+  count: number;
+  note?: string;
+}): Promise<SetStockResult> {
+  const { productId, color, size } = params;
+  const count = Math.floor(params.count);
+  if (!ObjectId.isValid(productId) || !Number.isFinite(count) || count < 0) {
+    return { ok: false, reason: "not-found" };
+  }
+  const col = await productsCollection();
+  const product = await col.findOne({ _id: new ObjectId(productId) });
+  const exists = ((product?.variants ?? []) as ProductVariant[]).some(
+    (v) => variantKey(v) === variantKey({ color, size }),
+  );
+  if (!product || !exists) return { ok: false, reason: "not-found" };
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const current = await readVariantStock(productId, color, size);
+    const delta = count - (current ?? 0);
+    if (current !== null && delta === 0) {
+      return { ok: true, changed: false, stockAfter: count };
+    }
+    // Untracked → seed (absent field must still be absent); tracked → CAS on
+    // the exact value we read.
+    const stockGuard = current === null ? { $exists: false } : current;
+    const match = { color: ci(color), size: ci(size), stock: stockGuard };
+    const res = await col.updateOne(
+      { _id: new ObjectId(productId), variants: { $elemMatch: match } },
+      { $set: { "variants.$[v].stock": count }, $inc: { totalStock: delta } },
+      {
+        arrayFilters: [
+          { "v.color": match.color, "v.size": match.size, "v.stock": stockGuard },
+        ],
+      },
+    );
+    if (res.modifiedCount !== 1) continue; // stock moved under us — re-read
+
+    await recordMovement({
+      productId,
+      productName: String(product.name ?? ""),
+      color,
+      size,
+      delta,
+      stockAfter: count,
+      reason: "adjust",
+      ...(params.note ? { note: params.note } : {}),
+    });
+    return { ok: true, changed: true, stockAfter: count };
+  }
+  return { ok: false, reason: "conflict" };
 }
 
 /** Variants at or below their alert threshold. */

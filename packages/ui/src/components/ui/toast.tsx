@@ -41,7 +41,7 @@ function ToastList() {
           <Icon className={cn("mt-0.5 h-5 w-5 shrink-0", accent)} />
           <div className="min-w-0 flex-1">
             <Toast.Title className="text-sm font-semibold text-foreground" />
-            <Toast.Description className="mt-0.5 text-sm text-muted-foreground" />
+            <Toast.Description className="mt-0.5 whitespace-pre-line text-sm text-muted-foreground" />
           </div>
           <Toast.Close
             aria-label="Đóng"

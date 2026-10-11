@@ -2,7 +2,9 @@ import {
   getDashboardStats,
   type DashboardStats,
 } from "@repo/ui/lib/db/repositories/stats";
+import { listLowStockVariants } from "@repo/ui/lib/db/repositories/inventory";
 import { DashboardClient } from "@/components/DashboardClient";
+import { LowStockAlert } from "@/components/LowStockAlert";
 
 // Read live from the shared DB; never cache at build time.
 export const runtime = "nodejs";
@@ -31,8 +33,16 @@ async function loadStats(): Promise<DashboardStats> {
   }
 }
 
+async function loadLowStock() {
+  try {
+    return await listLowStockVariants();
+  } catch {
+    return [];
+  }
+}
+
 export default async function DashboardPage() {
-  const stats = await loadStats();
+  const [stats, lowStock] = await Promise.all([loadStats(), loadLowStock()]);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -44,6 +54,7 @@ export default async function DashboardPage() {
         Bảng điều khiển quản trị cửa hàng Tutu Kidswear.
       </p>
 
+      <LowStockAlert items={lowStock} />
       <DashboardClient initial={stats} />
     </div>
   );

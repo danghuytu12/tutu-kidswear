@@ -20,12 +20,12 @@ export async function GET(request: Request, { params }: Params) {
     const { id } = await params;
     const product = await getProductById(id);
     if (!product) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Không tìm thấy sản phẩm" }, { status: 404 });
     }
     return NextResponse.json({ product });
   } catch {
     return NextResponse.json(
-      { error: "Failed to load product" },
+      { error: "Không thể tải sản phẩm" },
       { status: 500 },
     );
   }
@@ -40,12 +40,12 @@ export async function PUT(request: Request, { params }: Params) {
     const body = (await request.json()) as Partial<ProductInput>;
     const product = await updateProduct(id, body);
     if (!product) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Không tìm thấy sản phẩm" }, { status: 404 });
     }
     return NextResponse.json({ product });
   } catch {
     return NextResponse.json(
-      { error: "Failed to update product" },
+      { error: "Không thể lưu sản phẩm, vui lòng thử lại" },
       { status: 500 },
     );
   }
@@ -59,12 +59,12 @@ export async function DELETE(request: Request, { params }: Params) {
     const { id } = await params;
     const ok = await deleteProduct(id);
     if (!ok) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Không tìm thấy sản phẩm" }, { status: 404 });
     }
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json(
-      { error: "Failed to delete product" },
+      { error: "Không thể xóa sản phẩm" },
       { status: 500 },
     );
   }

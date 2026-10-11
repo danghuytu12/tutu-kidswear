@@ -25,6 +25,7 @@ export function MobileBuyBar({
   onAddToCart,
   onBuyNow,
   buying,
+  soldOut,
 }: {
   watchRef: RefObject<HTMLElement | null>;
   name: string;
@@ -36,6 +37,8 @@ export function MobileBuyBar({
   onAddToCart: () => void;
   onBuyNow: () => void;
   buying: boolean;
+  /** Selected variant is out of stock: the sheet lets them pick another. */
+  soldOut: boolean;
 }) {
   const [visible, setVisible] = useState(false);
   const [action, setAction] = useState<BuyAction | null>(null);
@@ -114,10 +117,12 @@ export function MobileBuyBar({
             <button
               type="button"
               onClick={confirm}
-              disabled={buying}
+              disabled={buying || soldOut}
               className="mt-6 w-full rounded bg-[#b08560] py-3 text-[16px] font-semibold text-white active:bg-[#8a6647] disabled:opacity-60"
             >
-              {action === "buy" ? (
+              {soldOut ? (
+                "Hết hàng"
+              ) : action === "buy" ? (
                 <span className="inline-flex items-center justify-center gap-2">
                   {buying ? <Spinner /> : null}
                   Mua ngay

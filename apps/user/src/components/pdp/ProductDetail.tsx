@@ -42,18 +42,28 @@ export interface ProductDetailData {
   description?: string;
   /** URL of the size-chart image. */
   sizeChartImage?: string;
+  /** Per-variant stock; `stock: null` = not tracked (sells without limit). */
+  variants?: { color: string; size: string; stock: number | null }[];
 }
+
+/** Show "Chỉ còn N" once a variant's stock is at or below this. */
+const LOW_STOCK_HINT = 5;
+
+const norm = (s: string) => s.trim().toLowerCase();
 
 function OptionGroup({
   label,
   options,
   value,
   onChange,
+  isDisabled,
 }: {
   label: string;
   options: string[];
   value: string;
   onChange: (v: string) => void;
+  /** Sold-out options render struck through and can't be picked. */
+  isDisabled?: (v: string) => boolean;
 }) {
   return (
     <div className="mt-6">
@@ -61,20 +71,27 @@ function OptionGroup({
         {label} <span className="text-black">{value}</span>
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
-        {options.map((o) => (
-          <button
-            key={o}
-            type="button"
-            onClick={() => onChange(o)}
-            className={`rounded-full px-4 py-1.5 text-[15px] ${
-              o === value
-                ? "bg-black text-white"
-                : "border border-black/20 bg-white text-black"
-            }`}
-          >
-            {o}
-          </button>
-        ))}
+        {options.map((o) => {
+          const disabled = isDisabled?.(o) ?? false;
+          return (
+            <button
+              key={o}
+              type="button"
+              onClick={() => onChange(o)}
+              disabled={disabled}
+              aria-label={disabled ? `${o} (hết hàng)` : undefined}
+              className={`rounded-full px-4 py-1.5 text-[15px] ${
+                o === value
+                  ? "bg-black text-white"
+                  : disabled
+                    ? "border border-dashed border-black/15 bg-white text-black/30 line-through"
+                    : "border border-black/20 bg-white text-black"
+              }`}
+            >
+              {o}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -92,9 +109,44 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
   const sizes =
     data?.sizes && data.sizes.length > 0 ? data.sizes : pdpProduct.sizes;
   const colors = data?.colors ?? [];
-  const [selectedSize, setSelectedSize] = useState(sizes[0]);
-  const [selectedColor, setSelectedColor] = useState(colors[0] ?? "");
-  const [qty, setQty] = useState(1);
+  const variants = data?.variants ?? [];
+
+  /** Stock of a colour×size: a number, null (untracked = unlimited), or
+   *  undefined when the product has no such combination. */
+  const stockFor = (color: string, size: string) =>
+    variants.find((v) => norm(v.color) === norm(color) && norm(v.size) === norm(size))
+      ?.stock;
+  const colorSoldOut = (color: string) => {
+    const ofColor = variants.filter((v) => norm(v.color) === norm(color));
+    return ofColor.length > 0 && ofColor.every((v) => v.stock === 0);
+  };
+  const firstSizeFor = (color: string) =>
+    sizes.find((s) => stockFor(color, s) !== 0) ?? sizes[0];
+
+  // Start on something that can actually be bought.
+  const firstAvailable = variants.find((v) => v.stock !== 0);
+  const [selectedColor, setSelectedColor] = useState(
+    firstAvailable && colors.includes(firstAvailable.color)
+      ? firstAvailable.color
+      : (colors[0] ?? ""),
+  );
+  const [selectedSize, setSelectedSize] = useState(
+    firstAvailable && sizes.includes(firstAvailable.size)
+      ? firstAvailable.size
+      : sizes[0],
+  );
+  const [qtyInput, setQty] = useState(1);
+
+  const currentStock = stockFor(selectedColor, selectedSize);
+  const soldOut = currentStock === 0;
+  const maxQty = typeof currentStock === "number" ? Math.max(1, currentStock) : Infinity;
+  // Clamp rather than store: switching to a variant with less stock lowers it.
+  const qty = Math.min(qtyInput, maxQty);
+  const pickColor = (color: string) => {
+    setSelectedColor(color);
+    // Don't leave the shopper on a size that's gone in the new colour.
+    if (stockFor(color, selectedSize) === 0) setSelectedSize(firstSizeFor(color));
+  };
   const actionsRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
@@ -112,6 +164,7 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
   const variantLabel = () =>
     [selectedSize, selectedColor].filter(Boolean).join(" · ");
   const addToCart = () => {
+    if (soldOut) return;
     addItem(
       { href, name, img: gallery[0], price: parsePriceVnd(sale), ...variant() },
       qty,
@@ -123,6 +176,7 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
     );
   };
   const buyNow = () => {
+    if (soldOut) return;
     addItem(
       { href, name, img: gallery[0], price: parsePriceVnd(sale), ...variant() },
       qty,
@@ -141,7 +195,8 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
           label="màu"
           options={colors}
           value={selectedColor}
-          onChange={setSelectedColor}
+          onChange={pickColor}
+          isDisabled={colorSoldOut}
         />
       ) : null}
       <OptionGroup
@@ -149,13 +204,23 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
         options={sizes}
         value={selectedSize}
         onChange={setSelectedSize}
+        isDisabled={(s) => stockFor(selectedColor, s) === 0}
       />
+      {soldOut ? (
+        <p className="mt-2 text-[14px] font-medium text-[#dc2525]">
+          Phân loại này đã hết hàng
+        </p>
+      ) : typeof currentStock === "number" && currentStock <= LOW_STOCK_HINT ? (
+        <p className="mt-2 text-[14px] font-medium text-[#c2410c]">
+          Chỉ còn {currentStock} sản phẩm
+        </p>
+      ) : null}
       <div className="mt-6">
         <div className="inline-flex items-center rounded-full border border-black/20">
           <MotionButton
             type="button"
             aria-label="Giảm số lượng"
-            onClick={() => setQty((q) => Math.max(1, q - 1))}
+            onClick={() => setQty(Math.max(1, qty - 1))}
             className="flex h-10 w-10 items-center justify-center text-black"
           >
             <MinusIcon className="h-4 w-4" />
@@ -164,7 +229,8 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
           <MotionButton
             type="button"
             aria-label="Tăng số lượng"
-            onClick={() => setQty((q) => q + 1)}
+            onClick={() => setQty(Math.min(qty + 1, maxQty))}
+            disabled={qty >= maxQty}
             className="flex h-10 w-10 items-center justify-center text-black"
           >
             <PlusIcon className="h-4 w-4" />
@@ -213,28 +279,40 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
 
         {/* Buttons */}
         <div ref={actionsRef} className="mt-6 flex gap-3">
-          <MotionButton
-            type="button"
-            onClick={addToCart}
-            className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5]"
-          >
-            Thêm vào giỏ hàng
-          </MotionButton>
-          <MotionButton
-            type="button"
-            onClick={buyNow}
-            disabled={navigating}
-            className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5] disabled:opacity-60"
-          >
-            {navigating ? (
-              <span className="inline-flex items-center justify-center gap-2">
-                <Spinner />
-                Mua ngay
-              </span>
-            ) : (
-              "Mua ngay"
-            )}
-          </MotionButton>
+          {soldOut ? (
+            <button
+              type="button"
+              disabled
+              className="flex-1 rounded bg-[#f1f1f1] py-3 text-[16px] text-black/40"
+            >
+              Hết hàng
+            </button>
+          ) : (
+            <>
+              <MotionButton
+                type="button"
+                onClick={addToCart}
+                className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5]"
+              >
+                Thêm vào giỏ hàng
+              </MotionButton>
+              <MotionButton
+                type="button"
+                onClick={buyNow}
+                disabled={navigating}
+                className="flex-1 rounded bg-[#e3e3e3] py-3 text-[16px] text-black hover:bg-[#d5d5d5] disabled:opacity-60"
+              >
+                {navigating ? (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <Spinner />
+                    Mua ngay
+                  </span>
+                ) : (
+                  "Mua ngay"
+                )}
+              </MotionButton>
+            </>
+          )}
         </div>
 
         {/* Zalo CTA */}
@@ -270,6 +348,7 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
         onAddToCart={addToCart}
         onBuyNow={buyNow}
         buying={navigating}
+        soldOut={soldOut}
       />
     </section>
   );
