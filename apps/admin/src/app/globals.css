@@ -7,3 +7,13 @@
 @source "../../../../packages/ui/src";
 
 @import "@repo/ui/globals.css";
+
+/* iOS Safari zooms the page when a focused field's text is under 16px. On
+   phones/tablets force 16px; unlayered so it wins over text-* utilities. */
+@media (max-width: 1023px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

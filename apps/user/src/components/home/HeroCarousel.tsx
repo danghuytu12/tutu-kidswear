@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@repo/ui/components/icons";
 import { MotionButton } from "@repo/ui/components/motion";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  useCarousel,
+} from "@repo/ui/components/ui/carousel";
 
 const SLIDES = [
   "/images/cocandy/hero-1.png",
@@ -12,42 +17,14 @@ const SLIDES = [
   "/images/cocandy/hero-5.png",
 ];
 
-export function HeroCarousel() {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setIndex((prev) => (prev + 1) % SLIDES.length);
-    }, 5000);
-    return () => clearInterval(id);
-  }, []);
-
-  const goTo = (i: number) => setIndex((i + SLIDES.length) % SLIDES.length);
-  const prev = () => goTo(index - 1);
-  const next = () => goTo(index + 1);
-
+function HeroControls() {
+  const { selectedIndex, scrollPrev, scrollNext, scrollTo } = useCarousel();
   return (
-    <section className="relative w-full overflow-hidden">
-      <div
-        className="flex transition-transform duration-500 ease-out"
-        style={{ transform: `translateX(-${index * 100}%)` }}
-      >
-        {SLIDES.map((src, i) => (
-          <a key={src} href="#" className="w-full shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={src}
-              alt={`Slide ${i + 1}`}
-              className="aspect-[2/1] max-h-[660px] w-full"
-            />
-          </a>
-        ))}
-      </div>
-
+    <>
       <div className="absolute left-3 top-1/2 -translate-y-1/2">
         <MotionButton
           type="button"
-          onClick={prev}
+          onClick={scrollPrev}
           aria-label="Previous slide"
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 text-black transition-colors hover:bg-white/90"
         >
@@ -57,7 +34,7 @@ export function HeroCarousel() {
       <div className="absolute right-3 top-1/2 -translate-y-1/2">
         <MotionButton
           type="button"
-          onClick={next}
+          onClick={scrollNext}
           aria-label="Next slide"
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 text-black transition-colors hover:bg-white/90"
         >
@@ -71,13 +48,38 @@ export function HeroCarousel() {
             key={src}
             type="button"
             aria-label={`Go to slide ${i + 1}`}
-            onClick={() => goTo(i)}
+            onClick={() => scrollTo(i)}
             className={`h-2 rounded-full transition-all ${
-              i === index ? "w-6 bg-[#b08560]" : "w-2 bg-white/70"
+              i === selectedIndex ? "w-6 bg-[#b08560]" : "w-2 bg-white/70"
             }`}
           />
         ))}
       </div>
+    </>
+  );
+}
+
+export function HeroCarousel() {
+  return (
+    <section className="relative w-full overflow-hidden">
+      <Carousel opts={{ loop: true }} autoplayDelay={5000} aria-label="Banner">
+        <CarouselContent>
+          {SLIDES.map((src, i) => (
+            <CarouselItem key={src}>
+              <a href="#" className="block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt={`Slide ${i + 1}`}
+                  draggable={false}
+                  className="aspect-[2/1] max-h-[660px] w-full"
+                />
+              </a>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <HeroControls />
+      </Carousel>
     </section>
   );
 }

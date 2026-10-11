@@ -65,12 +65,15 @@ export function CustomerImport() {
     : [];
 
   return (
-    <div className="mb-6 overflow-hidden rounded-xl border border-[#E4E7EC] bg-white">
-      <div className="border-b border-[#E4E7EC] px-4 py-4 sm:px-5">
-        <h3 className="text-lg font-semibold text-[#1D2939]">
+    <div className="mb-4 overflow-hidden rounded-xl border border-[#E4E7EC] bg-white sm:mb-6">
+      <div className="border-b border-[#E4E7EC] px-4 py-3 sm:px-5 sm:py-4">
+        <h3 className="text-base font-semibold text-[#1D2939] sm:text-lg">
           Nhập khách hàng từ Excel
         </h3>
-        <p className="mt-1 text-sm text-[#667085]">
+        <p className="mt-1 text-xs text-[#667085] sm:hidden">
+          Khách trùng số điện thoại sẽ được cập nhật, không tạo trùng.
+        </p>
+        <p className="mt-1 hidden text-sm text-[#667085] sm:block">
           Tải file mẫu, điền thông tin rồi tải lên. Khách trùng{" "}
           <strong>số điện thoại</strong> sẽ được cập nhật thay vì tạo mới, nên
           nhập lại nhiều lần vẫn an toàn.
@@ -78,10 +81,10 @@ export function CustomerImport() {
       </div>
 
       <div className="px-4 py-4 sm:px-5">
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
           <a
             href="/api/customers/template"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#D0D5DD] bg-white px-4 py-2.5 text-sm font-medium text-[#344054] transition hover:bg-gray-50 sm:w-auto"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-[#D0D5DD] bg-white px-3 text-sm font-medium text-[#344054] transition hover:bg-gray-50 active:bg-gray-50 sm:h-10 sm:px-4"
           >
             <Download className="h-4 w-4" />
             Tải file mẫu
@@ -90,7 +93,7 @@ export function CustomerImport() {
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={busy}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#465FFF] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#3641F5] disabled:opacity-50 sm:w-auto"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#b08560] px-3 text-sm font-medium text-white transition hover:bg-[#8a6647] disabled:opacity-50 sm:h-10 sm:px-4"
           >
             {busy ? (
               <>

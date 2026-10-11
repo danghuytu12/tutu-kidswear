@@ -3,6 +3,8 @@
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight, ChevronDown, Plus, X } from "lucide-react";
+import { cn } from "@repo/ui/lib/utils";
+import { useToast } from "@repo/ui/components/ui/toast";
 import type {
   ProductDoc,
   ProductInput,
@@ -21,18 +23,16 @@ function Label({ text }: { text: string }) {
 }
 
 const inputClass =
-  "h-11 w-full rounded-lg border border-[#D0D5DD] bg-transparent px-4 py-2.5 text-sm text-[#1D2939] shadow-sm placeholder:text-[#98A2B3] focus:border-[#465FFF]/40 focus:outline-none focus:ring-3 focus:ring-[#465FFF]/20";
+  "h-11 w-full rounded-lg border border-[#D0D5DD] bg-transparent px-4 py-2.5 text-sm text-[#1D2939] shadow-sm placeholder:text-[#98A2B3] focus:border-[#b08560]/40 focus:outline-none focus:ring-3 focus:ring-[#b08560]/20";
 
 function TextField({
   label,
   placeholder,
-  type = "text",
   value,
   onChange,
 }: {
   label: string;
   placeholder: string;
-  type?: "text" | "number";
   value: string;
   onChange: (value: string) => void;
 }) {
@@ -40,12 +40,63 @@ function TextField({
     <div>
       <Label text={label} />
       <input
-        type={type}
+        type="text"
+        enterKeyHint="next"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={inputClass}
       />
+    </div>
+  );
+}
+
+/**
+ * Whole-number input for VND prices / percentages. Opens the digit keypad on
+ * phones, shows "279.000" grouping while typing, and stores bare digits.
+ */
+function MoneyInput({
+  value,
+  onChange,
+  placeholder,
+  suffix = "₫",
+  ariaLabel,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  suffix?: string;
+  ariaLabel?: string;
+}) {
+  const digits = value.replace(/\D/g, "");
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        enterKeyHint="next"
+        aria-label={ariaLabel}
+        placeholder={placeholder}
+        value={digits ? Number(digits).toLocaleString("vi-VN") : ""}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+        className={cn(inputClass, "pr-9 tabular-nums")}
+      />
+      <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-[#98A2B3]">
+        {suffix}
+      </span>
+    </div>
+  );
+}
+
+function PriceField({
+  label,
+  ...props
+}: { label: string } & React.ComponentProps<typeof MoneyInput>) {
+  return (
+    <div>
+      <Label text={label} />
+      <MoneyInput {...props} />
     </div>
   );
 }
@@ -70,7 +121,7 @@ function SelectField({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-11 w-full appearance-none rounded-lg border border-[#D0D5DD] bg-transparent px-4 py-2.5 pr-11 text-sm text-[#344054] shadow-sm focus:border-[#465FFF]/40 focus:outline-none focus:ring-3 focus:ring-[#465FFF]/10"
+          className="h-11 w-full appearance-none rounded-lg border border-[#D0D5DD] bg-transparent px-4 py-2.5 pr-11 text-sm text-[#344054] shadow-sm focus:border-[#b08560]/40 focus:outline-none focus:ring-3 focus:ring-[#b08560]/10"
         >
           <option value="" disabled hidden>
             {placeholder}
@@ -118,27 +169,34 @@ function TagInput({
   return (
     <div>
       <Label text={label} />
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#D0D5DD] bg-transparent px-3 py-2 shadow-sm focus-within:border-[#465FFF]/40 focus-within:ring-3 focus-within:ring-[#465FFF]/20">
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#D0D5DD] bg-transparent px-3 py-2 shadow-sm focus-within:border-[#b08560]/40 focus-within:ring-3 focus-within:ring-[#b08560]/20">
         {tags.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 rounded-md bg-[#EEF4FF] px-2 py-1 text-sm text-[#3538CD]"
+            className="inline-flex h-8 items-center rounded-md bg-[#f7f1ea] pl-2.5 text-sm text-[#8a6647]"
           >
             {tag}
             <button
               type="button"
               aria-label={`Xóa ${tag}`}
               onClick={() => onChange(tags.filter((t) => t !== tag))}
-              className="cursor-pointer text-[#3538CD]/60 hover:text-[#3538CD]"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-[#8a6647]/60 hover:text-[#8a6647] active:bg-[#ecdfd0]"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
           </span>
         ))}
         <input
           value={draft}
+          enterKeyHint="enter"
+          autoCorrect="off"
           placeholder={tags.length === 0 ? placeholder : ""}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => {
+            // Android keyboards don't report "," in keydown, so also commit
+            // when a comma arrives through the value itself.
+            if (e.target.value.includes(",")) commit(e.target.value);
+            else setDraft(e.target.value);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === ",") {
               e.preventDefault();
@@ -150,6 +208,17 @@ function TagInput({
           onBlur={() => commit(draft)}
           className="min-w-[80px] flex-1 bg-transparent py-1 text-sm text-[#1D2939] outline-none placeholder:text-[#98A2B3]"
         />
+        {draft.trim() ? (
+          <button
+            type="button"
+            // Keep focus in the input so the keyboard stays open.
+            onPointerDown={(e) => e.preventDefault()}
+            onClick={() => commit(draft)}
+            className="h-8 shrink-0 rounded-md bg-[#b08560] px-3 text-sm font-medium text-white"
+          >
+            Thêm
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -167,12 +236,12 @@ function CheckboxField({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[#E4E7EC] p-4 transition hover:bg-gray-50">
+    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[#E4E7EC] p-4 transition hover:bg-gray-50 has-checked:border-[#b08560]/50 has-checked:bg-[#f7f1ea]">
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
+        className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-[#D0D5DD] accent-[#b08560]"
       />
       <span>
         <span className="block text-sm font-medium text-[#344054]">
@@ -195,10 +264,12 @@ function SectionCard({
 }) {
   return (
     <div className="rounded-2xl border border-[#E4E7EC] bg-white">
-      <div className="border-b border-[#E4E7EC] px-6 py-4">
-        <h3 className="text-lg font-medium text-[#1D2939]">{title}</h3>
+      <div className="border-b border-[#E4E7EC] px-4 py-3 sm:px-6 sm:py-4">
+        <h3 className="text-base font-semibold text-[#1D2939] sm:text-lg sm:font-medium">
+          {title}
+        </h3>
       </div>
-      <div className="p-6">{children}</div>
+      <div className="p-4 sm:p-6">{children}</div>
     </div>
   );
 }
@@ -241,6 +312,7 @@ function toNumber(value: string): number {
 
 export function ProductForm({ initial }: { initial?: ProductDoc }) {
   const router = useRouter();
+  const toast = useToast();
   const isEdit = Boolean(initial);
 
   const [name, setName] = useState(initial?.name ?? "");
@@ -431,50 +503,54 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
       );
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Failed to save product");
+        throw new Error(data.error ?? "Không thể lưu sản phẩm");
       }
+      toast.success(
+        status === "publish" ? "Đã lưu sản phẩm" : "Đã lưu nháp",
+        name.trim(),
+      );
       router.push("/products");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save product");
+      setError(err instanceof Error ? err.message : "Không thể lưu sản phẩm");
       setSubmitting(false);
     }
   }
 
-  const heading = isEdit ? "Edit Product" : "Add Products";
-  const submitLabel = isEdit ? "Save Changes" : "Publish Product";
+  const heading = isEdit ? "Sửa sản phẩm" : "Thêm sản phẩm";
+  const submitLabel = isEdit ? "Lưu thay đổi" : "Đăng sản phẩm";
 
   return (
-    <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-semibold text-[#1D2939]">{heading}</h1>
-        <div className="flex items-center gap-1.5 text-sm">
-          <span className="text-[#667085]">Home</span>
+    <div className="mx-auto max-w-[1536px]">
+      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-lg font-semibold text-[#1D2939] sm:text-xl">{heading}</h1>
+        <div className="hidden items-center gap-1.5 text-sm sm:flex">
+          <span className="text-[#667085]">Trang chủ</span>
           <ChevronRight className="h-4 w-4 text-[#667085]" />
           <span className="text-[#1D2939]">{heading}</span>
         </div>
       </div>
 
-      <div className="space-y-6">
-        <SectionCard title="Products Description">
+      <div className="space-y-4 sm:space-y-6">
+        <SectionCard title="Thông tin sản phẩm">
           <div className="space-y-5">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <TextField
-                label="Product Name"
-                placeholder="Enter product name"
+                label="Tên sản phẩm"
+                placeholder="VD: Áo cộc cotton vân mỏng NÂU"
                 value={name}
                 onChange={setName}
               />
               <SelectField
-                label="Category"
-                placeholder="Select a category"
+                label="Danh mục"
+                placeholder="Chọn danh mục"
                 options={CATEGORIES}
                 value={category}
                 onChange={setCategory}
               />
             </div>
             <div>
-              <Label text="Description" />
+              <Label text="Mô tả" />
               <RichTextEditor value={description} onChange={setDescription} />
             </div>
             <div>
@@ -526,19 +602,17 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
               </div>
               <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
                 <div className="sm:w-56">
-                  <Label text="Giá bán chung (VND) — áp cho tất cả" />
-                  <input
-                    type="number"
-                    placeholder="279000"
+                  <PriceField
+                    label="Giá bán chung — áp cho tất cả"
+                    placeholder="279.000"
                     value={bulkPrice}
-                    onChange={(e) => setBulkPrice(e.target.value)}
-                    className={inputClass}
+                    onChange={setBulkPrice}
                   />
                 </div>
                 <button
                   type="button"
                   onClick={generateVariants}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#465FFF] px-5 text-sm font-medium text-white shadow-sm transition hover:bg-[#3641F5]"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#b08560] px-5 text-sm font-medium text-white shadow-sm transition hover:bg-[#8a6647]"
                 >
                   <Plus className="h-4 w-4" />
                   Tạo biến thể
@@ -551,131 +625,91 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
               storefront lấy từ biến thể đầu tiên.
             </p>
 
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] border-separate border-spacing-y-2">
-                <thead>
-                  <tr className="text-left text-xs font-medium text-[#667085]">
-                    <th className="px-2 font-medium">Màu sắc</th>
-                    <th className="px-2 font-medium">Kích cỡ</th>
-                    <th className="px-2 font-medium">Giá bán (VND)</th>
-                    <th className="w-10 px-2" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {variants.map((v, index) => (
-                    <tr key={index}>
-                      <td className="px-2">
-                        <input
-                          placeholder="Đỏ"
-                          value={v.color}
-                          onChange={(e) =>
-                            setVariantAt(index, "color", e.target.value)
-                          }
-                          className={inputClass}
-                        />
-                      </td>
-                      <td className="px-2">
-                        <input
-                          placeholder="90"
-                          value={v.size}
-                          onChange={(e) =>
-                            setVariantAt(index, "size", e.target.value)
-                          }
-                          className={inputClass}
-                        />
-                      </td>
-                      <td className="px-2">
-                        <input
-                          type="number"
-                          placeholder="279000"
-                          value={v.sellPrice}
-                          onChange={(e) =>
-                            setVariantAt(index, "sellPrice", e.target.value)
-                          }
-                          className={inputClass}
-                        />
-                      </td>
-                      <td className="px-2 text-center">
-                        <button
-                          type="button"
-                          aria-label="Xóa biến thể"
-                          onClick={() => removeVariant(index)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#667085] transition hover:bg-[#FEF3F2] hover:text-[#B42318]"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* One markup for both layouts: stacked cards on phones/tablets,
+                a 4-column grid (like a table) from lg up. */}
+            <div className="space-y-2">
+              <div className="hidden grid-cols-[1fr_1fr_1fr_2.5rem] gap-3 px-1 text-xs font-medium text-[#667085] lg:grid">
+                <span>Màu sắc</span>
+                <span>Kích cỡ</span>
+                <span>Giá bán</span>
+              </div>
+              {variants.map((v, index) => (
+                <div
+                  key={index}
+                  className="relative grid grid-cols-2 gap-2 rounded-xl border border-[#E4E7EC] p-3 lg:grid-cols-[1fr_1fr_1fr_2.5rem] lg:gap-3 lg:rounded-none lg:border-0 lg:p-0"
+                >
+                  <p className="col-span-2 flex h-8 items-center text-xs font-medium text-[#667085] lg:hidden">
+                    Biến thể {index + 1}
+                  </p>
+                  <input
+                    aria-label={`Màu sắc biến thể ${index + 1}`}
+                    placeholder="Màu (VD: Đỏ)"
+                    autoCorrect="off"
+                    enterKeyHint="next"
+                    value={v.color}
+                    onChange={(e) => setVariantAt(index, "color", e.target.value)}
+                    className={inputClass}
+                  />
+                  <input
+                    aria-label={`Kích cỡ biến thể ${index + 1}`}
+                    placeholder="Size (VD: 90)"
+                    autoCorrect="off"
+                    enterKeyHint="next"
+                    value={v.size}
+                    onChange={(e) => setVariantAt(index, "size", e.target.value)}
+                    className={inputClass}
+                  />
+                  <div className="col-span-2 lg:col-span-1">
+                    <MoneyInput
+                      ariaLabel={`Giá bán biến thể ${index + 1}`}
+                      placeholder="279.000"
+                      value={v.sellPrice}
+                      onChange={(value) => setVariantAt(index, "sellPrice", value)}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    aria-label={`Xóa biến thể ${index + 1}`}
+                    onClick={() => removeVariant(index)}
+                    className="absolute right-1.5 top-1.5 inline-flex h-10 w-10 items-center justify-center rounded-lg text-[#667085] transition hover:bg-[#FEF3F2] hover:text-[#B42318] active:bg-[#FEF3F2] lg:static lg:h-11"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
             </div>
 
             <button
               type="button"
               onClick={addVariant}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#D0D5DD] bg-white px-4 py-2.5 text-sm font-medium text-[#344054] shadow-sm transition hover:bg-gray-50"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[#D0D5DD] bg-white px-4 text-sm font-medium text-[#344054] transition hover:bg-gray-50 active:bg-gray-50 sm:w-auto sm:border-solid sm:shadow-sm"
             >
               <Plus className="h-4 w-4" />
               Thêm biến thể
             </button>
 
-            <div className="grid grid-cols-1 gap-5 border-t border-[#E4E7EC] pt-4 sm:grid-cols-2 lg:grid-cols-3">
-              <div>
-                <Label text="Giá nhập (VND) — áp dụng cho cả sản phẩm" />
-                <input
-                  type="number"
-                  placeholder="200000"
-                  value={buyPrice}
-                  onChange={(e) => setBuyPrice(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <Label text="Giá bán Facebook (VND)" />
-                <input
-                  type="number"
-                  placeholder="290000"
-                  value={facebookPrice}
-                  onChange={(e) => setFacebookPrice(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <Label text="Giá bán Shopee (VND)" />
-                <input
-                  type="number"
-                  placeholder="299000"
-                  value={shopeePrice}
-                  onChange={(e) => setShopeePrice(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <Label text="Giá bán TikTok (VND)" />
-                <input
-                  type="number"
-                  placeholder="295000"
-                  value={tiktokPrice}
-                  onChange={(e) => setTiktokPrice(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <Label text="% Khuyến mại (áp dụng cho cả sản phẩm)" />
-                <input
-                  type="number"
+            <div className="border-t border-[#E4E7EC] pt-4">
+              <p className="mb-3 text-xs text-[#667085]">
+                Giá nhập, giá theo kênh và khuyến mại áp dụng cho cả sản phẩm.
+              </p>
+              <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+                <PriceField label="Giá nhập" placeholder="200.000" value={buyPrice} onChange={setBuyPrice} />
+                <PriceField label="Giá Facebook" placeholder="290.000" value={facebookPrice} onChange={setFacebookPrice} />
+                <PriceField label="Giá Shopee" placeholder="299.000" value={shopeePrice} onChange={setShopeePrice} />
+                <PriceField label="Giá TikTok" placeholder="295.000" value={tiktokPrice} onChange={setTiktokPrice} />
+                <PriceField
+                  label="Khuyến mại"
                   placeholder="0"
+                  suffix="%"
                   value={discountPct}
-                  onChange={(e) => setDiscountPct(e.target.value)}
-                  className={inputClass}
+                  onChange={setDiscountPct}
                 />
               </div>
             </div>
           </div>
         </SectionCard>
 
-        <SectionCard title="Products Images">
+        <SectionCard title="Hình ảnh sản phẩm">
           <div className="space-y-4">
             <p className="text-sm text-[#667085]">
               Dán link ảnh (Google Drive, hoặc URL ảnh bất kỳ). Ảnh đầu tiên là
@@ -714,7 +748,7 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
                       type="button"
                       aria-label="Xóa ảnh"
                       onClick={() => removeImageUrl(index)}
-                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#667085] transition hover:bg-[#FEF3F2] hover:text-[#B42318]"
+                      className="inline-flex h-11 w-11 shrink-0 lg:h-9 lg:w-9 items-center justify-center rounded-lg text-[#667085] transition hover:bg-[#FEF3F2] hover:text-[#B42318]"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -726,7 +760,7 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
             <button
               type="button"
               onClick={addImageUrl}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#D0D5DD] bg-white px-4 py-2.5 text-sm font-medium text-[#344054] shadow-sm transition hover:bg-gray-50"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[#D0D5DD] bg-white px-4 text-sm font-medium text-[#344054] transition hover:bg-gray-50 active:bg-gray-50 sm:w-auto sm:border-solid sm:shadow-sm"
             >
               <Plus className="h-4 w-4" />
               Thêm ảnh
@@ -759,38 +793,45 @@ export function ProductForm({ initial }: { initial?: ProductDoc }) {
           </div>
         </SectionCard>
 
-        {error ? (
-          <p className="rounded-lg bg-[#FEF3F2] px-4 py-3 text-sm text-[#B42318]">
-            {error}
-          </p>
-        ) : null}
-
-        <div className="flex items-center justify-end gap-3">
-          <button
-            type="button"
-            disabled={submitting}
-            onClick={() =>
-              isEdit ? router.push("/products") : submit("draft")
-            }
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3.5 text-sm font-medium text-[#344054] ring-1 ring-inset ring-[#D0D5DD] transition hover:bg-gray-50 disabled:opacity-60"
-          >
-            {isEdit ? "Cancel" : "Draft"}
-          </button>
-          <button
-            type="button"
-            disabled={submitting}
-            onClick={() => submit("publish")}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#465FFF] px-5 py-3.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#3641F5] disabled:bg-[#9CB9FF]"
-          >
-            {submitting ? (
-              <span className="inline-flex items-center gap-2">
-                <Spinner />
-                Saving...
-              </span>
-            ) : (
-              submitLabel
-            )}
-          </button>
+        {/* Save bar stays pinned while scrolling the long form: above the
+            phone tab bar, at the viewport bottom on desktop. Errors show
+            here so they're never off-screen. */}
+        <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-[#E4E7EC] bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:bottom-0 lg:-mx-8 lg:px-8">
+          {error ? (
+            <p
+              role="alert"
+              className="mb-3 rounded-lg bg-[#FEF3F2] px-3 py-2 text-sm text-[#B42318]"
+            >
+              {error}
+            </p>
+          ) : null}
+          <div className="flex items-center gap-3 lg:justify-end">
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() =>
+                isEdit ? router.push("/products") : submit("draft")
+              }
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-white px-5 text-sm font-medium text-[#344054] ring-1 ring-inset ring-[#D0D5DD] transition hover:bg-gray-50 disabled:opacity-60 lg:h-11 lg:flex-none"
+            >
+              {isEdit ? "Hủy" : "Lưu nháp"}
+            </button>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => submit("publish")}
+              className="inline-flex h-12 flex-[2] items-center justify-center gap-2 rounded-lg bg-[#b08560] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#8a6647] disabled:bg-[#d8c3ad] lg:h-11 lg:flex-none"
+            >
+              {submitting ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner />
+                  Đang lưu...
+                </span>
+              ) : (
+                submitLabel
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -32,6 +32,7 @@ import {
   MobileCardList,
 } from "@/components/MobileCard";
 import { Spinner } from "@repo/ui/components/Spinner";
+import { useToast } from "@repo/ui/components/ui/toast";
 
 const COLUMNS = [
   "Mã đơn",
@@ -49,9 +50,9 @@ const COLUMNS = [
 function formatDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleString("en-GB", {
+  return d.toLocaleString("vi-VN", {
     day: "2-digit",
-    month: "short",
+    month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
@@ -78,6 +79,7 @@ export function OrdersTable({
   query: string;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -113,11 +115,12 @@ export function OrdersTable({
         body: JSON.stringify({ ids: [...selected] }),
       });
       if (!res.ok) throw new Error("bulk delete failed");
+      toast.success(`Đã xóa ${selected.size} đơn hàng`);
       setSelected(new Set());
       setConfirmOpen(false);
       startTransition(() => router.refresh());
     } catch {
-      window.alert("Không thể xóa các đơn hàng. Vui lòng thử lại.");
+      toast.error("Không thể xóa các đơn hàng", "Vui lòng thử lại.");
     } finally {
       setBusy(false);
     }
@@ -125,24 +128,27 @@ export function OrdersTable({
 
   return (
     <>
-      {/* Bulk action bar — shown once at least one order is selected. */}
+      {/* Bulk action bar — shown once at least one order is selected. On
+          phones it floats above the tab bar so it stays reachable while the
+          list scrolls; on desktop it sits above the table. */}
       {someSelected ? (
-        <div className="flex flex-col gap-2 border-b border-[#E4E7EC] bg-[#F9FAFB] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex items-center justify-between gap-2 rounded-xl border border-[#E4E7EC] bg-white px-3 py-2.5 shadow-lg lg:static lg:rounded-none lg:border-0 lg:border-b lg:bg-[#F9FAFB] lg:px-5 lg:py-3 lg:shadow-none">
           <span className="text-sm text-[#344054]">
-            Đã chọn <strong>{selected.size}</strong> đơn hàng
+            Đã chọn <strong>{selected.size}</strong>
+            <span className="hidden sm:inline"> đơn hàng</span>
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             <button
               type="button"
               onClick={() => setSelected(new Set())}
-              className="text-sm text-[#667085] hover:text-[#344054]"
+              className="h-10 rounded-lg px-3 text-sm text-[#667085] hover:bg-[#F2F4F7] hover:text-[#344054]"
             >
               Bỏ chọn
             </button>
             <button
               type="button"
               onClick={() => setConfirmOpen(true)}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#B42318] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#912018]"
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#B42318] px-4 text-sm font-medium text-white transition hover:bg-[#912018]"
             >
               <Trash2 className="h-4 w-4" />
               Xóa đã chọn
@@ -162,7 +168,7 @@ export function OrdersTable({
                   checked={allSelected}
                   onChange={toggleAll}
                   disabled={orders.length === 0}
-                  className="h-4 w-4 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
+                  className="h-4 w-4 cursor-pointer rounded border-[#D0D5DD] accent-[#b08560]"
                 />
               </TableHead>
               {COLUMNS.map((label) => (
@@ -193,7 +199,7 @@ export function OrdersTable({
                 <TableRow
                   key={o._id}
                   data-state={isSel ? "selected" : undefined}
-                  className="border-[#E4E7EC] hover:bg-gray-50 data-[state=selected]:bg-[#EEF4FF]"
+                  className="border-[#E4E7EC] hover:bg-gray-50 data-[state=selected]:bg-[#f7f1ea]"
                 >
                   <TableCell>
                     <input
@@ -201,7 +207,7 @@ export function OrdersTable({
                       aria-label={`Chọn đơn ${orderCode(o._id)}`}
                       checked={isSel}
                       onChange={() => toggleOne(o._id)}
-                      className="h-4 w-4 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
+                      className="h-4 w-4 cursor-pointer rounded border-[#D0D5DD] accent-[#b08560]"
                     />
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
@@ -305,38 +311,59 @@ export function OrdersTable({
         </CardEmpty>
       ) : (
         <MobileCardList>
+          <li className="flex items-center justify-between bg-[#F9FAFB] px-4 py-1">
+            <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm text-[#344054]">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleAll}
+                className="h-5 w-5 cursor-pointer rounded border-[#D0D5DD] accent-[#b08560]"
+              />
+              Chọn tất cả
+            </label>
+            <span className="text-xs text-[#667085]">{orders.length} đơn</span>
+          </li>
           {orders.map((o) => {
             const isSel = selected.has(o._id);
             return (
               <MobileCard
                 key={o._id}
-                className={isSel ? "bg-[#EEF4FF]" : undefined}
+                className={isSel ? "bg-[#f7f1ea]" : undefined}
               >
-                <div className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    aria-label={`Chọn đơn ${orderCode(o._id)}`}
-                    checked={isSel}
-                    onChange={() => toggleOne(o._id)}
-                    className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-[#D0D5DD] text-[#465FFF] focus:ring-[#465FFF]/30"
-                  />
-                  <span className="font-mono text-sm font-semibold text-[#1D2939]">
-                    {orderCode(o._id)}
-                  </span>
-                  <span className="ml-auto text-sm font-semibold text-[#1D2939]">
+                {/* Checkbox gets a 44px tap area; the 24-char code wraps
+                    instead of pushing the total off the card. */}
+                <div className="flex items-start gap-2">
+                  <label className="-m-2.5 flex shrink-0 cursor-pointer p-2.5">
+                    <input
+                      type="checkbox"
+                      aria-label={`Chọn đơn ${orderCode(o._id)}`}
+                      checked={isSel}
+                      onChange={() => toggleOne(o._id)}
+                      className="h-5 w-5 cursor-pointer rounded border-[#D0D5DD] accent-[#b08560]"
+                    />
+                  </label>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[15px] font-semibold text-[#1D2939]">
+                      {o.customerName}
+                    </p>
+                    <p className="break-all font-mono text-xs text-[#98A2B3]">
+                      {orderCode(o._id)}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-[15px] font-semibold text-[#1D2939]">
                     {formatVnd(o.total)}
                   </span>
                 </div>
 
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-[#344054]">
-                    {o.customerName}
-                  </span>
-                  <span className="text-xs text-[#667085]">
+                <div className="flex flex-col gap-0.5 text-sm">
+                  <a
+                    href={`tel:${o.customerPhone}`}
+                    className="w-fit font-medium text-[#b08560]"
+                  >
                     {o.customerPhone}
-                  </span>
+                  </a>
                   {o.customerEmail ? (
-                    <span className="text-xs text-[#667085]">
+                    <span className="break-all text-xs text-[#667085]">
                       {o.customerEmail}
                     </span>
                   ) : null}
@@ -391,7 +418,7 @@ export function OrdersTable({
                   <OrderStatusSelect id={o._id} status={o.status} />
                   <DeleteOrderButton
                     id={o._id}
-                    className="h-10 w-10 border border-[#FDA29B]"
+                    className="h-11 w-11 border border-[#FDA29B]"
                   />
                 </div>
               </MobileCard>
@@ -399,6 +426,8 @@ export function OrdersTable({
           })}
         </MobileCardList>
       )}
+      {/* Keeps the last card clear of the floating bulk bar on phones. */}
+      {someSelected ? <div aria-hidden className="h-16 lg:hidden" /> : null}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>

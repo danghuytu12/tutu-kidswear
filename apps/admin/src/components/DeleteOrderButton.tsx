@@ -16,6 +16,7 @@ import {
 } from "@repo/ui/components/ui/alert-dialog";
 import { cn } from "@repo/ui/lib/utils";
 import { Spinner } from "@repo/ui/components/Spinner";
+import { useToast } from "@repo/ui/components/ui/toast";
 
 // Deletes one order after confirming through a shadcn AlertDialog, then
 // refreshes the server-rendered list. `className` lets the mobile card render a
@@ -28,6 +29,7 @@ export function DeleteOrderButton({
   className?: string;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -39,9 +41,10 @@ export function DeleteOrderButton({
       const res = await fetch(`/api/orders/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("delete failed");
       setOpen(false);
+      toast.success("Đã xóa đơn hàng");
       startTransition(() => router.refresh());
     } catch {
-      window.alert("Không thể xóa đơn hàng. Vui lòng thử lại.");
+      toast.error("Không thể xóa đơn hàng", "Vui lòng thử lại.");
     } finally {
       setBusy(false);
     }

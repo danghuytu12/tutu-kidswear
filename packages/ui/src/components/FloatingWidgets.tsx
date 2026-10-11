@@ -8,8 +8,13 @@ import {
   ChevronUpIcon,
 } from "@repo/ui/components/icons";
 
-export function FloatingWidgets() {
+/**
+ * `raised` lifts the widgets above a mobile bottom bar (e.g. the PDP buy bar)
+ * so they don't overlap it; desktop position is unchanged.
+ */
+export function FloatingWidgets({ raised = false }: { raised?: boolean }) {
   const [showTop, setShowTop] = useState(false);
+  const bottom = raised ? "bottom-24 lg:bottom-5" : "bottom-5";
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 400);
@@ -22,7 +27,7 @@ export function FloatingWidgets() {
     <>
       {/* Social chat widgets, stacked bottom-right — each pulses + wiggles
           continuously (staggered so they don't move in lockstep). */}
-      <div className="fixed bottom-5 right-5 z-[90] flex flex-col items-center gap-3">
+      <div className={`fixed ${bottom} right-5 z-[90] flex flex-col items-center gap-3`}>
         <a
           href="https://www.facebook.com/profile.php?id=61591679398475"
           aria-label="Nhắn tin Messenger"
@@ -58,7 +63,7 @@ export function FloatingWidgets() {
           type="button"
           aria-label="Lên đầu trang"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-5 left-5 z-[90] flex h-11 w-11 items-center justify-center rounded-full bg-[#b08560] text-white shadow-lg transition-colors hover:bg-[#8a6647]"
+          className={`fixed ${bottom} left-5 z-[90] flex h-11 w-11 items-center justify-center rounded-full bg-[#b08560] text-white shadow-lg transition-colors hover:bg-[#8a6647]`}
         >
           <ChevronUpIcon className="h-5 w-5" />
         </button>

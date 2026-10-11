@@ -44,8 +44,12 @@ export function RichTextEditor({
           "undo redo | blocks | bold italic underline forecolor | " +
           "alignleft aligncenter alignright | bullist numlist outdent indent | " +
           "link image table | removeformat | code fullscreen",
+        // Overflow toolbar buttons slide in on one row instead of a dropdown.
+        toolbar_mode: "sliding",
+        // 16px on phones so iOS doesn't zoom into the editor on focus.
         content_style:
-          "body { font-family: Outfit, Helvetica, Arial, sans-serif; font-size: 14px }",
+          "body { font-family: 'Be Vietnam Pro', Helvetica, Arial, sans-serif; font-size: 14px }" +
+          " @media (max-width: 1023px) { body { font-size: 16px } }",
       }}
     />
   );

@@ -10,7 +10,7 @@ import { Skeleton } from "@repo/ui/components/ui/skeleton";
 
 function PageHeading() {
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-6 hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center sm:justify-between">
       <Skeleton className="h-7 w-40" />
       <Skeleton className="h-5 w-36" />
     </div>
@@ -93,7 +93,7 @@ export function TablePageSkeleton({
   columns?: number;
 }) {
   return (
-    <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
+    <div className="mx-auto max-w-[1536px]">
       <PageHeading />
       <div className="overflow-hidden rounded-xl border border-[#E4E7EC] bg-white">
         <CardHeader />
@@ -107,7 +107,7 @@ export function TablePageSkeleton({
 /** The dashboard: filter row, four stat cards, then a chart block. */
 export function DashboardSkeleton() {
   return (
-    <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
+    <div className="mx-auto max-w-[1536px]">
       <PageHeading />
       <Skeleton className="h-24 w-full rounded-xl" />
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -123,7 +123,7 @@ export function DashboardSkeleton() {
 /** The Shopee report: upload card, filter + stat tiles, then report tables. */
 export function ShopeeSkeleton() {
   return (
-    <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
+    <div className="mx-auto max-w-[1536px]">
       <PageHeading />
       <div className="space-y-6">
         <Skeleton className="h-36 w-full rounded-xl" />
@@ -157,7 +157,7 @@ export function ShopeeSkeleton() {
 /** The product form: two stacked section cards plus the action row. */
 export function FormPageSkeleton() {
   return (
-    <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
+    <div className="mx-auto max-w-[1536px]">
       <PageHeading />
       <div className="space-y-6">
         {[0, 1].map((section) => (

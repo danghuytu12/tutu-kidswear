@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@repo/ui/components/ui/alert-dialog";
 import { Spinner } from "@repo/ui/components/Spinner";
+import { useToast } from "@repo/ui/components/ui/toast";
 
 // Deletes one import and every row it created, then refreshes the report.
 export function DeleteShopeeImportButton({
@@ -25,6 +26,7 @@ export function DeleteShopeeImportButton({
   filename: string;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -37,9 +39,10 @@ export function DeleteShopeeImportButton({
       });
       if (!res.ok) throw new Error("delete failed");
       setOpen(false);
+      toast.success("Đã xóa lần nhập");
       router.refresh();
     } catch {
-      window.alert("Không thể xóa lần nhập này. Vui lòng thử lại.");
+      toast.error("Không thể xóa lần nhập này", "Vui lòng thử lại.");
     } finally {
       setBusy(false);
     }
@@ -49,7 +52,7 @@ export function DeleteShopeeImportButton({
     <AlertDialog open={open} onOpenChange={(next) => setOpen(next)}>
       <AlertDialogTrigger
         aria-label={`Xóa lần nhập ${filename}`}
-        className="inline-flex items-center justify-center rounded-lg p-2 text-[#B42318] transition hover:bg-[#FEF3F2] disabled:opacity-50"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-[#B42318] transition hover:bg-[#FEF3F2] active:bg-[#FEF3F2] disabled:opacity-50 lg:h-9 lg:w-9"
       >
         <Trash2 className="h-4 w-4" />
       </AlertDialogTrigger>
@@ -57,7 +60,7 @@ export function DeleteShopeeImportButton({
         <AlertDialogHeader>
           <AlertDialogTitle>Xóa lần nhập này?</AlertDialogTitle>
           <AlertDialogDescription>
-            Toàn bộ dòng dữ liệu từ tệp <strong>{filename}</strong> sẽ bị xóa
+            Toàn bộ dòng dữ liệu từ tệp <strong className="break-all">{filename}</strong> sẽ bị xóa
             khỏi báo cáo. Hành động này không thể hoàn tác — muốn khôi phục thì
             phải tải lại tệp từ Shopee.
           </AlertDialogDescription>

@@ -16,7 +16,16 @@ export const NAV = [
   { label: "Cài đặt", href: "/settings", icon: Settings },
 ] as const;
 
+// Routes that belong to a nav item without sharing its URL prefix.
+const RELATED: Record<string, string[]> = {
+  "/products": ["/add-product", "/edit-product"],
+};
+
 /** A nav item is active on its own route (and, except for "/", its subroutes). */
 export function isActive(pathname: string, href: string): boolean {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  if (href === "/") return pathname === "/";
+  return [href, ...(RELATED[href] ?? [])].some((p) => pathname.startsWith(p));
 }
+
+/** Phone bottom tabs, in thumb-priority order; the rest live under "Thêm". */
+export const MOBILE_TABS = ["/", "/orders", "/products", "/customers"] as const;

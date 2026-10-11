@@ -34,9 +34,9 @@ function formatDate(iso: string): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-GB", {
+  return d.toLocaleDateString("vi-VN", {
     day: "2-digit",
-    month: "short",
+    month: "2-digit",
     year: "numeric",
   });
 }
@@ -49,7 +49,7 @@ const ORIGIN_LABELS = {
 
 const ORIGIN_STYLES = {
   order: "bg-[#F2F4F7] text-[#344054]",
-  import: "bg-[#EEF4FF] text-[#3538CD]",
+  import: "bg-[#f7f1ea] text-[#8a6647]",
   both: "bg-[#ECFDF3] text-[#027A48]",
 } as const;
 
@@ -88,11 +88,11 @@ export default async function CustomersPage({
   );
 
   return (
-    <div className="mx-auto max-w-[1536px] font-[family-name:var(--font-outfit)]">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto max-w-[1536px]">
+      <div className="mb-6 hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold text-[#1D2939]">Khách hàng</h1>
         <div className="flex items-center gap-1.5 text-sm">
-          <span className="text-[#667085]">Home</span>
+          <span className="text-[#667085]">Trang chủ</span>
           <ChevronRight className="h-4 w-4 text-[#667085]" />
           <span className="text-[#1D2939]">Khách hàng</span>
         </div>
@@ -101,12 +101,12 @@ export default async function CustomersPage({
       <CustomerImport />
 
       <div className="overflow-hidden rounded-xl border border-[#E4E7EC] bg-white">
-        <div className="flex flex-col justify-between gap-5 border-b border-[#E4E7EC] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
+        <div className="flex flex-col justify-between gap-5 border-b border-[#E4E7EC] px-4 py-3 sm:flex-row sm:items-center sm:px-5 sm:py-4">
           <div>
-            <h3 className="text-lg font-semibold text-[#1D2939]">
+            <h3 className="text-base font-semibold text-[#1D2939] sm:text-lg">
               Khách hàng đã mua hàng
             </h3>
-            <p className="mt-1 text-sm text-[#667085]">
+            <p className="mt-1 hidden text-sm text-[#667085] sm:block">
               Tổng hợp từ đơn hàng: mỗi khách đã mua sản phẩm gì, số lượng bao
               nhiêu.
             </p>
@@ -205,35 +205,51 @@ export default async function CustomersPage({
           <MobileCardList>
             {pageCustomers.map((c) => (
               <MobileCard key={`m-${c.phone}|${c.name}`}>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-[#1D2939]">
-                    {c.name}
-                  </span>
-                  <span className="text-xs text-[#667085]">{c.phone}</span>
-                  <span className="mt-1">
-                    <OriginBadge origin={c.origin} />
-                  </span>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-semibold text-[#1D2939]">
+                      {c.name}
+                    </p>
+                    <a
+                      href={`tel:${c.phone}`}
+                      className="text-sm font-medium text-[#b08560]"
+                    >
+                      {c.phone}
+                    </a>
+                  </div>
+                  <OriginBadge origin={c.origin} />
                 </div>
 
-                <ul className="space-y-1 border-y border-[#F2F4F7] py-3">
-                  {c.products.map((p, i) => (
-                    <li
-                      key={`${c.phone}-m-${i}`}
-                      className="flex items-baseline justify-between gap-3 text-sm"
-                    >
-                      <span className="text-[#667085]">{p.name}</span>
-                      <span className="shrink-0 font-medium text-[#344054]">
-                        ×{p.qty}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                {c.products.length > 0 ? (
+                  <ul className="space-y-1 border-y border-[#F2F4F7] py-3">
+                    {c.products.map((p, i) => (
+                      <li
+                        key={`${c.phone}-m-${i}`}
+                        className="flex items-baseline justify-between gap-3 text-sm"
+                      >
+                        <span className="text-[#667085]">{p.name}</span>
+                        <span className="shrink-0 font-medium text-[#344054]">
+                          ×{p.qty}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
 
-                <CardField label="Tổng SL">{c.totalItems}</CardField>
-                <CardField label="Số đơn">{c.orderCount}</CardField>
-                <CardField label="Tổng chi">
-                  {formatVnd(c.totalSpent)}
-                </CardField>
+                <dl className="grid grid-cols-3 gap-2 text-center">
+                  {[
+                    ["Tổng SL", String(c.totalItems)],
+                    ["Số đơn", String(c.orderCount)],
+                    ["Tổng chi", formatVnd(c.totalSpent)],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-lg bg-[#F9FAFB] px-2 py-2">
+                      <dt className="text-xs text-[#667085]">{label}</dt>
+                      <dd className="truncate text-sm font-semibold text-[#344054]">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
                 <CardField label="Mua gần nhất">
                   {formatDate(c.lastOrderAt)}
                 </CardField>

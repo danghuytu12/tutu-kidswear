@@ -66,10 +66,11 @@ export function NotificationBell() {
     return () => clearInterval(id);
   }, [load]);
 
-  // Close the dropdown on outside click.
+  // Close the dropdown on outside tap/click (pointerdown covers touch too)
+  // and on Escape.
   useEffect(() => {
     if (!open) return;
-    const onDown = (e: MouseEvent) => {
+    const onDown = (e: PointerEvent) => {
       if (
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
@@ -77,8 +78,15 @@ export function NotificationBell() {
         setOpen(false);
       }
     };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   function openOrder(id: string) {
@@ -95,19 +103,20 @@ export function NotificationBell() {
       <button
         type="button"
         aria-label="Thông báo"
+        aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="relative cursor-pointer rounded-full p-2 text-black/60 hover:bg-[#f2ece3]"
+        className="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-black/60 hover:bg-[#f2ece3] active:bg-[#f2ece3]"
       >
         <Bell className="h-5 w-5" />
         {count > 0 ? (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#dc2525] px-1 text-[10px] font-bold text-white">
+          <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#dc2525] px-1 text-[11px] font-bold text-white ring-2 ring-white">
             {count > 9 ? "9+" : count}
           </span>
         ) : null}
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-full z-[120] mt-2 w-80 overflow-hidden rounded-xl border border-[#E4E7EC] bg-white shadow-lg">
+        <div className="fixed inset-x-3 top-[3.75rem] z-[120] overflow-hidden rounded-xl border border-[#E4E7EC] bg-white shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80">
           <div className="border-b border-[#E4E7EC] px-4 py-3">
             <p className="text-sm font-semibold text-[#1D2939]">
               Thông báo đơn hàng
@@ -118,15 +127,15 @@ export function NotificationBell() {
               Không có thông báo mới
             </p>
           ) : (
-            <ul className="max-h-96 overflow-y-auto">
+            <ul className="max-h-[min(24rem,calc(100dvh-10rem))] overflow-y-auto overscroll-contain">
               {orders.map((o) => (
                 <li key={o._id}>
                   <button
                     type="button"
                     onClick={() => openOrder(o._id)}
-                    className="flex w-full cursor-pointer flex-col gap-0.5 border-b border-[#F2F4F7] px-4 py-3 text-left hover:bg-[#faf6ef]"
+                    className="flex w-full cursor-pointer flex-col gap-0.5 border-b border-[#F2F4F7] px-4 py-3 text-left hover:bg-[#faf6ef] active:bg-[#faf6ef]"
                   >
-                    <span className="text-sm font-medium text-[#344054]">
+                    <span className="break-all text-sm font-medium text-[#344054]">
                       Đơn hàng mới {orderCode(o._id)}
                     </span>
                     <span className="flex items-center justify-between text-xs text-[#667085]">

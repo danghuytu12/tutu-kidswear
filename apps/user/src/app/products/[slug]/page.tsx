@@ -148,7 +148,9 @@ export default async function ProductPage({ params }: Params) {
       {/* <ProductReviews /> */}
       {/* <SimilarProducts /> */}
       <SiteFooter />
-      <FloatingWidgets />
+      {/* Room for the fixed mobile buy bar so it never covers the footer. */}
+      <div aria-hidden className="h-[72px] lg:hidden" />
+      <FloatingWidgets raised />
     </>
   );
 }

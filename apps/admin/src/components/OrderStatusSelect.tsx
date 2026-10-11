@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@repo/ui/components/ui/toast";
 import { Spinner } from "@repo/ui/components/Spinner";
 import {
   ORDER_STATUSES,
@@ -30,6 +31,7 @@ export function OrderStatusSelect({
   status: Status;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [value, setValue] = useState<Status>(status);
   const [busy, setBusy] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -51,6 +53,7 @@ export function OrderStatusSelect({
       startTransition(() => router.refresh());
     } catch {
       setValue(prev); // revert on failure
+      toast.error("Không thể cập nhật trạng thái", "Vui lòng thử lại.");
     } finally {
       setBusy(false);
     }
@@ -63,7 +66,7 @@ export function OrderStatusSelect({
         disabled={busy}
         onChange={(e) => onChange(e.target.value as Status)}
         aria-label="Trạng thái đơn hàng"
-        className={`cursor-pointer rounded-full border-0 px-2.5 py-1 text-xs font-medium outline-none focus:ring-2 focus:ring-[#465FFF]/30 disabled:opacity-50 ${STATUS_STYLES[value]}`}
+        className={`cursor-pointer rounded-full border-0 px-3.5 py-2 text-[13px] font-medium lg:px-2.5 lg:py-1 lg:text-xs outline-none focus:ring-2 focus:ring-[#b08560]/30 disabled:opacity-50 ${STATUS_STYLES[value]}`}
       >
         {ORDER_STATUSES.map((s) => (
           <option key={s} value={s} className="bg-white text-[#344054]">

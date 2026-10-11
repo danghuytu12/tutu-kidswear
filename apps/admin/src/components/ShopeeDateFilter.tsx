@@ -46,9 +46,9 @@ export function ShopeeDateFilter({ from, to }: { from: string; to: string }) {
               key={p.label}
               type="button"
               onClick={() => apply(p.range.from, p.range.to)}
-              className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${
+              className={`h-9 rounded-full px-3.5 text-[13px] font-medium transition ${
                 active
-                  ? "bg-[#465FFF] text-white"
+                  ? "bg-[#b08560] text-white"
                   : "bg-[#F2F4F7] text-[#344054] hover:bg-[#E4E7EC]"
               }`}
             >
@@ -59,14 +59,14 @@ export function ShopeeDateFilter({ from, to }: { from: string; to: string }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-[13px]">
-        {pending ? <Spinner className="text-[#465FFF]" /> : null}
+        {pending ? <Spinner className="text-[#b08560]" /> : null}
         <span className="text-[#667085]">Từ</span>
         <input
           type="date"
           value={from}
           max={to}
           onChange={(e) => apply(e.target.value, to)}
-          className="min-w-0 flex-1 rounded-lg border border-[#D0D5DD] px-2.5 py-1.5 text-[#1D2939] outline-none focus:border-[#465FFF] sm:flex-none"
+          className="h-10 min-w-0 flex-1 rounded-lg border border-[#D0D5DD] px-2.5 text-[#1D2939] outline-none focus:border-[#b08560] sm:flex-none"
         />
         <span className="text-[#667085]">đến</span>
         <input
@@ -74,7 +74,7 @@ export function ShopeeDateFilter({ from, to }: { from: string; to: string }) {
           value={to}
           min={from}
           onChange={(e) => apply(from, e.target.value)}
-          className="min-w-0 flex-1 rounded-lg border border-[#D0D5DD] px-2.5 py-1.5 text-[#1D2939] outline-none focus:border-[#465FFF] sm:flex-none"
+          className="h-10 min-w-0 flex-1 rounded-lg border border-[#D0D5DD] px-2.5 text-[#1D2939] outline-none focus:border-[#b08560] sm:flex-none"
         />
       </div>
     </div>

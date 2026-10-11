@@ -11,6 +11,12 @@ import {
   MenuIcon,
   CloseIcon,
 } from "@repo/ui/components/icons";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerTitle,
+} from "@repo/ui/components/ui/drawer";
 import { useCart } from "./cart/CartContext";
 
 // Ordered nav: Trang Chủ | Bé Trai▾ | Bé Gái▾ | Bộ Sưu Tập▾ | Outlet | Cửa hàng | Blog
@@ -69,6 +75,85 @@ function MegaMenuItem({ menu }: { menu: MegaMenu }) {
         ) : null}
       </AnimatePresence>
     </li>
+  );
+}
+
+/** Mobile nav: top-level links, each mega menu collapsible (one open at a time). */
+function MobileNav({ onNavigate }: { onNavigate: () => void }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  return (
+    <nav className="space-y-4">
+      <Link
+        href={trangChu.href}
+        onClick={onNavigate}
+        className="font-display block text-[16px] font-bold text-[#b08560]"
+      >
+        {trangChu.label}
+      </Link>
+      {megaMenus.map((m) => {
+        const isOpen = expanded === m.label;
+        const panelId = `mobile-nav-${m.href.replace(/\W+/g, "-")}`;
+        return (
+          <div key={m.label}>
+            <div className="flex items-center justify-between">
+              <Link
+                href={m.href}
+                onClick={onNavigate}
+                className="font-display block text-[16px] font-bold text-[#b08560]"
+              >
+                {m.label}
+              </Link>
+              <button
+                type="button"
+                aria-label={`${isOpen ? "Thu gọn" : "Mở rộng"} ${m.label}`}
+                aria-expanded={isOpen}
+                aria-controls={panelId}
+                onClick={() => setExpanded(isOpen ? null : m.label)}
+                className="-mr-2 p-2 text-[#b08560]"
+              >
+                <ChevronDownIcon
+                  className={`h-5 w-5 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+            </div>
+            {isOpen ? (
+              <div id={panelId} className="mt-2 space-y-3 pl-3">
+                {m.groups.map((g) => (
+                  <div key={g.title}>
+                    <p className="font-display text-[14px] font-bold text-black">
+                      {g.title}
+                    </p>
+                    <ul className="mt-1 space-y-1 pl-2">
+                      {g.links.map((l) => (
+                        <li key={l.href}>
+                          <Link
+                            href={l.href}
+                            onClick={onNavigate}
+                            className="block py-1 text-[14px] text-black/80"
+                          >
+                            {l.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
+      {restSimple.map((l) => (
+        <Link
+          key={l.href}
+          href={l.href}
+          onClick={onNavigate}
+          className="font-display block text-[16px] font-bold text-[#b08560]"
+        >
+          {l.label}
+        </Link>
+      ))}
+    </nav>
   );
 }
 
@@ -138,92 +223,26 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Mobile drawer */}
-      <AnimatePresence>
-        {drawerOpen ? (
-          <div className="fixed inset-0 z-[110] lg:hidden">
-            <motion.div
-              className="absolute inset-0 bg-black/40"
-              onClick={() => setDrawerOpen(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            />
-            <motion.div
-              className="absolute left-0 top-0 h-full w-[300px] max-w-[85%] overflow-y-auto bg-white p-5 shadow-xl"
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
-            >
-              <div className="mb-4 flex items-center justify-between">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/cocandy/logo.png"
-                  alt="Tutu Kidswear"
-                  className="h-12 w-auto"
-                />
-                <button
-                  type="button"
-                  aria-label="Đóng"
-                  onClick={() => setDrawerOpen(false)}
-                >
-                  <CloseIcon className="h-6 w-6 text-black" />
-                </button>
-              </div>
-              <nav className="space-y-4">
-                <Link
-                  href={trangChu.href}
-                  className="font-display block text-[16px] font-bold text-[#b08560]"
-                >
-                  {trangChu.label}
-                </Link>
-                {megaMenus.map((m) => (
-                  <div key={m.label}>
-                    <Link
-                      href={m.href}
-                      className="font-display block text-[16px] font-bold text-[#b08560]"
-                    >
-                      {m.label}
-                    </Link>
-                    <div className="mt-2 space-y-3 pl-3">
-                      {m.groups.map((g) => (
-                        <div key={g.title}>
-                          <p className="font-display text-[14px] font-bold text-black">
-                            {g.title}
-                          </p>
-                          <ul className="mt-1 space-y-1 pl-2">
-                            {g.links.map((l) => (
-                              <li key={l.href}>
-                                <Link
-                                  href={l.href}
-                                  className="text-[14px] text-black/80"
-                                >
-                                  {l.label}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                {restSimple.map((l) => (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    className="font-display block text-[16px] font-bold text-[#b08560]"
-                  >
-                    {l.label}
-                  </Link>
-                ))}
-              </nav>
-            </motion.div>
+      {/* Mobile drawer — swipe left, Esc or tap outside to close */}
+      <Drawer side="left" open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent className="lg:hidden">
+          <div className="p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <DrawerTitle className="sr-only">Menu</DrawerTitle>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/cocandy/logo.png"
+                alt="Tutu Kidswear"
+                className="h-12 w-auto"
+              />
+              <DrawerClose aria-label="Đóng">
+                <CloseIcon className="h-6 w-6 text-black" />
+              </DrawerClose>
+            </div>
+            <MobileNav onNavigate={() => setDrawerOpen(false)} />
           </div>
-        ) : null}
-      </AnimatePresence>
+        </DrawerContent>
+      </Drawer>
     </header>
   );
 }

@@ -61,7 +61,7 @@ export function Pagination({
   const to = Math.min(page * pageSize, totalItems);
 
   const arrowBase =
-    "flex items-center rounded-lg border border-[#D0D5DD] bg-white p-2 shadow-sm transition";
+    "flex h-11 w-11 items-center justify-center rounded-lg border border-[#D0D5DD] bg-white shadow-sm transition sm:h-10 sm:w-10";
   const arrowEnabled = "text-[#344054] hover:bg-gray-50";
   const arrowDisabled = "pointer-events-none text-[#D0D5DD] opacity-60";
 
@@ -69,8 +69,8 @@ export function Pagination({
     <div className="flex flex-col items-center justify-between gap-3 border-t border-[#E4E7EC] px-4 py-4 sm:flex-row sm:px-5">
       <p className="text-sm text-[#667085]">
         {totalItems === 0
-          ? "Showing 0 of 0"
-          : `Showing ${from} to ${to} of ${totalItems}`}
+          ? "Không có kết quả"
+          : `Hiển thị ${from}–${to} trên ${totalItems}`}
       </p>
 
       {totalPages > 1 ? (
@@ -106,8 +106,8 @@ export function Pagination({
                   aria-current={item === page ? "page" : undefined}
                   className={
                     item === page
-                      ? "flex h-10 w-10 items-center justify-center rounded-lg bg-[#465FFF] text-sm font-medium text-white"
-                      : "flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium text-[#344054] transition hover:bg-[#465FFF]/10"
+                      ? "flex h-10 w-10 items-center justify-center rounded-lg bg-[#b08560] text-sm font-medium text-white"
+                      : "flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium text-[#344054] transition hover:bg-[#b08560]/10"
                   }
                 >
                   {item}

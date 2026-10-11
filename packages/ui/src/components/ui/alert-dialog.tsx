@@ -48,7 +48,7 @@ function AlertDialogContent({
       <AlertDialogPrimitive.Popup
         data-slot="alert-dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border border-border bg-background p-6 shadow-lg transition-all duration-150 sm:max-w-lg data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border border-border bg-background p-5 shadow-lg sm:p-6 transition-all duration-150 sm:max-w-lg data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
           className
         )}
         {...props}
@@ -112,6 +112,9 @@ function AlertDialogDescription({
   )
 }
 
+// Full-height touch targets on phones (footer stacks the buttons there).
+const touchSize = "h-11 px-4 text-[15px] sm:h-9 sm:text-sm"
+
 function AlertDialogAction({
   className,
   ...props
@@ -119,7 +122,7 @@ function AlertDialogAction({
   return (
     <AlertDialogPrimitive.Close
       data-slot="alert-dialog-action"
-      className={cn(buttonVariants(), className)}
+      className={cn(buttonVariants(), touchSize, className)}
       {...props}
     />
   )
@@ -132,7 +135,7 @@ function AlertDialogCancel({
   return (
     <AlertDialogPrimitive.Close
       data-slot="alert-dialog-cancel"
-      className={cn(buttonVariants({ variant: "outline" }), className)}
+      className={cn(buttonVariants({ variant: "outline" }), touchSize, className)}
       {...props}
     />
   )

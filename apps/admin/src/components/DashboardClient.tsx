@@ -77,23 +77,26 @@ export function DashboardClient({ initial }: { initial: DashboardStats }) {
       value: formatVnd(stats.revenue),
       icon: TrendingUp,
       tone: "#8a6647",
+      wide: true,
     },
   ];
 
   return (
     <>
-      {/* Filter row — one row, above the content it scopes */}
-      <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-black/5 bg-white p-3 shadow-sm">
-        <div className="flex gap-1.5">
+      {/* Filter: presets as a segmented control, then the custom range.
+          Stacks on phones, one row from sm up. */}
+      <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-black/5 bg-white p-3 shadow-sm sm:mt-6 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="grid grid-cols-3 gap-1 rounded-xl bg-black/[0.04] p-1 sm:flex">
           {PRESETS.map((p) => (
             <button
               key={p.days}
               type="button"
               onClick={() => applyPreset(p.days)}
-              className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${
+              aria-pressed={activePreset === p.days}
+              className={`h-9 rounded-lg px-3.5 text-[13px] font-medium transition ${
                 activePreset === p.days
-                  ? "bg-[#b08560] text-white"
-                  : "bg-black/5 text-black/70 hover:bg-black/10"
+                  ? "bg-[#b08560] text-white shadow-sm"
+                  : "text-black/70 hover:bg-black/5"
               }`}
             >
               {p.label}
@@ -101,25 +104,27 @@ export function DashboardClient({ initial }: { initial: DashboardStats }) {
           ))}
         </div>
 
-        {pending ? <Spinner className="text-[#b08560]" /> : null}
-
-        <div className="ml-auto flex items-center gap-2 text-[13px]">
-          <span className="text-black/45">Từ</span>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-[13px] sm:ml-auto sm:flex">
+          <label className="sr-only" htmlFor="stats-from">Từ ngày</label>
           <input
+            id="stats-from"
             type="date"
             value={from}
             max={to}
             onChange={(e) => load(e.target.value, to)}
-            className="rounded-lg border border-black/15 px-2.5 py-1.5 text-black outline-none focus:border-[#b08560]"
+            className="h-10 min-w-0 rounded-lg border border-black/15 px-2.5 text-black outline-none focus:border-[#b08560]"
           />
-          <span className="text-black/45">đến</span>
+          <span className="text-black/45">→</span>
+          <label className="sr-only" htmlFor="stats-to">Đến ngày</label>
           <input
+            id="stats-to"
             type="date"
             value={to}
             min={from}
             onChange={(e) => load(from, e.target.value)}
-            className="rounded-lg border border-black/15 px-2.5 py-1.5 text-black outline-none focus:border-[#b08560]"
+            className="h-10 min-w-0 rounded-lg border border-black/15 px-2.5 text-black outline-none focus:border-[#b08560]"
           />
+          {pending ? <Spinner className="text-[#b08560] sm:order-first" /> : null}
         </div>
       </div>
 
@@ -129,22 +134,31 @@ export function DashboardClient({ initial }: { initial: DashboardStats }) {
           pending ? "opacity-60 transition-opacity" : "transition-opacity"
         }
       >
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {cards.map(({ label, value, icon: Icon, tone }) => (
+        {/* Phones: revenue leads full width, the three counts share a row. */}
+        <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+          {cards.map(({ label, value, icon: Icon, tone, wide }) => (
             <div
               key={label}
-              className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
+              className={`rounded-2xl border border-black/5 bg-white p-3 shadow-sm sm:p-5 ${
+                wide ? "order-first col-span-3 sm:order-none sm:col-span-1" : ""
+              }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-black/50">{label}</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-[12px] text-black/50 sm:text-[13px]">{label}</span>
                 <span
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-white"
+                  className={`h-7 w-7 shrink-0 items-center justify-center rounded-full text-white sm:flex sm:h-9 sm:w-9 ${
+                    wide ? "flex" : "hidden"
+                  }`}
                   style={{ backgroundColor: tone }}
                 >
                   <Icon className="h-4 w-4" />
                 </span>
               </div>
-              <div className="mt-3 font-display text-[26px] font-bold text-black">
+              <div
+                className={`mt-1 truncate font-display font-bold text-black sm:mt-3 sm:text-[26px] ${
+                  wide ? "text-[26px]" : "text-[22px]"
+                }`}
+              >
                 {value}
               </div>
             </div>

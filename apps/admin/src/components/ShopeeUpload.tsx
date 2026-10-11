@@ -101,8 +101,8 @@ export function ShopeeUpload() {
 
   return (
     <div className="overflow-hidden rounded-xl border border-[#E4E7EC] bg-white">
-      <div className="border-b border-[#E4E7EC] px-4 py-4 sm:px-5">
-        <h3 className="text-lg font-semibold text-[#1D2939]">
+      <div className="border-b border-[#E4E7EC] px-4 py-3 sm:px-5 sm:py-4">
+        <h3 className="text-base font-semibold text-[#1D2939] sm:text-lg">
           Nhập dữ liệu Shopee
         </h3>
         <p className="mt-1 text-sm text-[#667085]">
@@ -119,7 +119,7 @@ export function ShopeeUpload() {
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#465FFF] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#3641F5] disabled:opacity-50 sm:w-auto"
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#b08560] px-4 text-sm font-medium text-white transition hover:bg-[#8a6647] disabled:opacity-50 sm:h-10 sm:w-auto"
         >
           {busy ? (
             <>
@@ -182,7 +182,7 @@ export function ShopeeUpload() {
             <AlertDialogDescription>
               {pending && (
                 <>
-                  Tệp <strong>{pending.file.name}</strong> sẽ được nhập cho
+                  Tệp <strong className="break-all">{pending.file.name}</strong> sẽ được nhập cho
                   khoảng{" "}
                   <strong>
                     {formatDayKey(pending.range.from)} →{" "}

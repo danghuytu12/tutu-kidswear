@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@repo/ui/components/cart/CartContext";
 import { useToast } from "@repo/ui/components/ui/toast";
@@ -13,8 +13,6 @@ import {
 import { parsePriceVnd } from "@repo/ui/lib/cart";
 import { pdpProduct } from "@repo/ui/lib/products";
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
   MinusIcon,
   PlusIcon,
   ExchangeIcon,
@@ -24,6 +22,8 @@ import {
 } from "@repo/ui/components/icons";
 import { MotionButton } from "@repo/ui/components/motion";
 import { Spinner } from "@repo/ui/components/Spinner";
+import { ProductGallery } from "./ProductGallery";
+import { MobileBuyBar } from "./MobileBuyBar";
 
 // Optional overrides from the DB product (by slug). Rich fields not stored in
 // the DB (reviews) still come from the static pdpProduct.
@@ -44,6 +44,42 @@ export interface ProductDetailData {
   sizeChartImage?: string;
 }
 
+function OptionGroup({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="mt-6">
+      <p className="text-[12px] text-[#777]">
+        {label} <span className="text-black">{value}</span>
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {options.map((o) => (
+          <button
+            key={o}
+            type="button"
+            onClick={() => onChange(o)}
+            className={`rounded-full px-4 py-1.5 text-[15px] ${
+              o === value
+                ? "bg-black text-white"
+                : "border border-black/20 bg-white text-black"
+            }`}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ProductDetail({ data }: { data?: ProductDetailData }) {
   const gallery =
     data?.gallery && data.gallery.length > 0
@@ -56,10 +92,10 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
   const sizes =
     data?.sizes && data.sizes.length > 0 ? data.sizes : pdpProduct.sizes;
   const colors = data?.colors ?? [];
-  const [active, setActive] = useState(0);
   const [selectedSize, setSelectedSize] = useState(sizes[0]);
   const [selectedColor, setSelectedColor] = useState(colors[0] ?? "");
   const [qty, setQty] = useState(1);
+  const actionsRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
   const [navigating, startTransition] = useTransition();
@@ -96,59 +132,52 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
     startTransition(() => router.push("/checkout"));
   };
 
-  const prev = () =>
-    setActive((a) => (a - 1 + gallery.length) % gallery.length);
-  const next = () => setActive((a) => (a + 1) % gallery.length);
+  // Colour / size / qty pickers — rendered inline and in the mobile buy sheet,
+  // both bound to the same state.
+  const variantControls = (
+    <>
+      {colors.length > 0 ? (
+        <OptionGroup
+          label="màu"
+          options={colors}
+          value={selectedColor}
+          onChange={setSelectedColor}
+        />
+      ) : null}
+      <OptionGroup
+        label="size"
+        options={sizes}
+        value={selectedSize}
+        onChange={setSelectedSize}
+      />
+      <div className="mt-6">
+        <div className="inline-flex items-center rounded-full border border-black/20">
+          <MotionButton
+            type="button"
+            aria-label="Giảm số lượng"
+            onClick={() => setQty((q) => Math.max(1, q - 1))}
+            className="flex h-10 w-10 items-center justify-center text-black"
+          >
+            <MinusIcon className="h-4 w-4" />
+          </MotionButton>
+          <span className="w-8 text-center text-[15px] text-black">{qty}</span>
+          <MotionButton
+            type="button"
+            aria-label="Tăng số lượng"
+            onClick={() => setQty((q) => q + 1)}
+            className="flex h-10 w-10 items-center justify-center text-black"
+          >
+            <PlusIcon className="h-4 w-4" />
+          </MotionButton>
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <section className="cocandy-container grid gap-8 pb-8 lg:grid-cols-2">
       {/* LEFT: gallery */}
-      <div>
-        <div className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={gallery[active]}
-            alt={name}
-            className="aspect-square w-full rounded-lg"
-          />
-          <button
-            type="button"
-            aria-label="Ảnh trước"
-            onClick={prev}
-            className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/70 text-black hover:bg-white"
-          >
-            <ChevronLeftIcon className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Ảnh sau"
-            onClick={next}
-            className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/70 text-black hover:bg-white"
-          >
-            <ChevronRightIcon className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="mt-3 flex gap-2 overflow-x-auto">
-          {gallery.map((src, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setActive(i)}
-              className="shrink-0"
-              aria-label={`Ảnh ${i + 1}`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt={`${name} ${i + 1}`}
-                className={`h-16 w-16 cursor-pointer rounded ${
-                  i === active ? "ring-2 ring-[#b08560]" : ""
-                }`}
-              />
-            </button>
-          ))}
-        </div>
-      </div>
+      <ProductGallery images={gallery} name={name} />
 
       {/* RIGHT: info */}
       <div>
@@ -180,87 +209,10 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
           )}
         </div>
 
-        {/* Color selector */}
-        {colors.length > 0 ? (
-          <div className="mt-6">
-            <p className="text-[12px] text-[#777]">
-              màu <span className="text-black">{selectedColor}</span>
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {colors.map((c) => {
-                const isActive = c === selectedColor;
-                return (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setSelectedColor(c)}
-                    className={`rounded-full px-4 py-1.5 text-[15px] ${
-                      isActive
-                        ? "bg-black text-white"
-                        : "border border-black/20 bg-white text-black"
-                    }`}
-                  >
-                    {c}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-
-        {/* Size selector */}
-        <div className="mt-6">
-          <p className="text-[12px] text-[#777]">
-            size <span className="text-black">{selectedSize}</span>
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {sizes.map((s) => {
-              const isActive = s === selectedSize;
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSelectedSize(s)}
-                  className={`rounded-full px-4 py-1.5 text-[15px] ${
-                    isActive
-                      ? "bg-black text-white"
-                      : "border border-black/20 bg-white text-black"
-                  }`}
-                >
-                  {s}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Qty stepper */}
-        <div className="mt-6">
-          <div className="inline-flex items-center rounded-full border border-black/20">
-            <MotionButton
-              type="button"
-              aria-label="Giảm số lượng"
-              onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="flex h-10 w-10 items-center justify-center text-black"
-            >
-              <MinusIcon className="h-4 w-4" />
-            </MotionButton>
-            <span className="w-8 text-center text-[15px] text-black">
-              {qty}
-            </span>
-            <MotionButton
-              type="button"
-              aria-label="Tăng số lượng"
-              onClick={() => setQty((q) => q + 1)}
-              className="flex h-10 w-10 items-center justify-center text-black"
-            >
-              <PlusIcon className="h-4 w-4" />
-            </MotionButton>
-          </div>
-        </div>
+        {variantControls}
 
         {/* Buttons */}
-        <div className="mt-6 flex gap-3">
+        <div ref={actionsRef} className="mt-6 flex gap-3">
           <MotionButton
             type="button"
             onClick={addToCart}
@@ -307,6 +259,18 @@ export function ProductDetail({ data }: { data?: ProductDetailData }) {
           </div>
         </div>
       </div>
+
+      <MobileBuyBar
+        watchRef={actionsRef}
+        name={name}
+        price={sale}
+        image={gallery[0]}
+        variantLabel={variantLabel()}
+        controls={variantControls}
+        onAddToCart={addToCart}
+        onBuyNow={buyNow}
+        buying={navigating}
+      />
     </section>
   );
 }
